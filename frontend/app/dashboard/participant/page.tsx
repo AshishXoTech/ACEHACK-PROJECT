@@ -2,26 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import axios from "axios";
+import { getParticipantDashboardData } from "@/services/participant.service";
 import { certificateService } from "@/services/certificate.service";
 import { leaderboardService } from "@/services/leaderboard.service";
 import { PageSkeleton } from "@/components/ui/LoadingSkeleton";
 import { ToastMessage } from "@/components/ui/ToastMessage";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
-
 interface Registration {
   eventId: string;
   eventName: string;
-  status: "approved" | "pending" | "rejected";
+  status: string;
   teamId: string;
   teamName: string;
   members?: string[];
-  submissionId: string | null;
+  submissionId?: string;
 }
 
 interface ParticipantData {
-  user: { id: string; name: string; email: string };
+  user?: { id: string; name: string; email: string };
   registrations: Registration[];
   hasCertificates: string[];
 }
@@ -47,9 +45,8 @@ export default function ParticipantDashboard() {
   const [toast, setToast] = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
-    axios
-      .get(`${API}/participant/dashboard`)
-      .then((r) => setData(r.data))
+    getParticipantDashboardData()
+      .then((dashboardData) => setData(dashboardData))
       .catch(() => setError("Could not load dashboard data."))
       .finally(() => setLoading(false));
   }, []);
@@ -117,15 +114,18 @@ export default function ParticipantDashboard() {
 
   if (loading) return <PageSkeleton rows={4} />;
 
+  const registrationKey = (r: Registration, index: number, section: string) =>
+    `${section}-${r.eventId}-${r.teamId}-${index}`;
+
   return (
     <div className="min-h-screen bg-[#020617] text-white">
       <ToastMessage toast={toast} onClose={() => setToast(null)} />
       <div className="max-w-6xl mx-auto p-10">
         <div className="mb-8">
           <h1 className="text-2xl font-bold">
-            Welcome back, {data?.user.name ?? "Participant"}
+            Welcome back, {data?.user?.name ?? "Participant"}
           </h1>
-          <p className="text-gray-400 text-sm mt-1">{data?.user.email}</p>
+          <p className="text-gray-400 text-sm mt-1">{data?.user?.email}</p>
         </div>
 
         {error && (
@@ -134,9 +134,8 @@ export default function ParticipantDashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           {[
-            { label: "Events Joined", value: registrations.length },
             {
               label: "Approved",
               value: registrations.filter((r) => r.status === "approved").length,
@@ -162,9 +161,9 @@ export default function ParticipantDashboard() {
             <h2 className="text-sm font-semibold text-slate-100 mb-3">Registered Events</h2>
             <div className="space-y-2 text-sm">
               {registrations.length === 0 && <p className="text-slate-500">No events registered yet.</p>}
-              {registrations.map((r) => (
+              {registrations.map((r, index) => (
                 <div
-                  key={`${r.eventId}-registered`}
+                  key={registrationKey(r, index, "registered")}
                   className="flex items-center justify-between rounded-lg border border-slate-800 px-3 py-2"
                 >
                   <span className="text-slate-200">{r.eventName}</span>
@@ -184,14 +183,14 @@ export default function ParticipantDashboard() {
             <h2 className="text-sm font-semibold text-slate-100 mb-3">Team Members</h2>
             <div className="space-y-2 text-sm">
               {registrations.length === 0 && <p className="text-slate-500">No team data available.</p>}
-              {registrations.map((r) => (
+              {registrations.map((r, index) => (
                 <div
-                  key={`${r.eventId}-members`}
+                  key={registrationKey(r, index, "members")}
                   className="rounded-lg border border-slate-800 px-3 py-2"
                 >
                   <p className="text-slate-200 font-medium">{r.teamName}</p>
                   <p className="text-slate-400 text-xs mt-1">
-                    {(r.members?.length ? r.members : [data?.user.name ?? "Member"]).join(", ")}
+                    {(r.members?.length ? r.members : [data?.user?.name ?? "Member"]).join(", ")}
                   </p>
                 </div>
               ))}
@@ -202,9 +201,9 @@ export default function ParticipantDashboard() {
             <h2 className="text-sm font-semibold text-slate-100 mb-3">Submission Status</h2>
             <div className="space-y-2 text-sm">
               {registrations.length === 0 && <p className="text-slate-500">No submissions yet.</p>}
-              {registrations.map((r) => (
+              {registrations.map((r, index) => (
                 <div
-                  key={`${r.eventId}-submission`}
+                  key={registrationKey(r, index, "submission")}
                   className="flex items-center justify-between rounded-lg border border-slate-800 px-3 py-2"
                 >
                   <span className="text-slate-200">{r.eventName}</span>
@@ -230,9 +229,9 @@ export default function ParticipantDashboard() {
             ) : (
               <div className="space-y-2 text-sm">
                 {registrations.length === 0 && <p className="text-slate-500">No leaderboard entries yet.</p>}
-                {registrations.map((r) => (
+                {registrations.map((r, index) => (
                   <div
-                    key={`${r.eventId}-position`}
+                    key={registrationKey(r, index, "position")}
                     className="flex items-center justify-between rounded-lg border border-slate-800 px-3 py-2"
                   >
                     <span className="text-slate-200">{r.eventName}</span>
@@ -266,90 +265,6 @@ export default function ParticipantDashboard() {
             </div>
           )}
         </div>
-
-        <h2 className="text-lg font-semibold mb-4">My Events</h2>
-        {!registrations.length ? (
-          <div className="bg-[#0f172a] border border-slate-800 rounded-xl p-10 text-center">
-            <p className="text-gray-500 mb-4">You have not registered for any events yet.</p>
-            <Link
-              href="/events"
-              className="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm transition-colors"
-            >
-              Browse Events
-            </Link>
-          </div>
-        ) : (
-          <div className="bg-[#0f172a] border border-slate-800 rounded-xl overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-700 text-gray-400 text-left">
-                  <th className="px-4 py-3 font-medium">Event</th>
-                  <th className="px-4 py-3 font-medium">Team Members</th>
-                  <th className="px-4 py-3 font-medium">Submission</th>
-                  <th className="px-4 py-3 font-medium">Position</th>
-                  <th className="px-4 py-3 font-medium">Leaderboard</th>
-                  <th className="px-4 py-3 font-medium">Certificate</th>
-                </tr>
-              </thead>
-              <tbody>
-                {registrations.map((r) => (
-                  <tr
-                    key={r.eventId}
-                    className="border-b border-slate-800 last:border-0 hover:bg-slate-800/20 transition-colors"
-                  >
-                    <td className="px-4 py-3 font-medium">
-                      <Link
-                        href={`/events/${r.eventId}`}
-                        className="hover:text-blue-400 transition-colors"
-                      >
-                        {r.eventName}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-300">
-                      {(r.members?.length ? r.members : [data?.user.name ?? "Member"]).join(", ")}
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.submissionId ? (
-                        <Link
-                          href={`/events/${r.eventId}/submissions/${r.submissionId}`}
-                          className="text-blue-400 hover:underline text-xs"
-                        >
-                          View
-                        </Link>
-                      ) : (
-                        <span className="text-gray-600 text-xs">Pending</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-xs font-semibold text-cyan-300">
-                      {positionsLoading ? "Loading..." : positionLabel(r.eventId)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/leaderboard/${r.eventId}`}
-                        className="text-blue-400 hover:underline text-xs"
-                      >
-                        View
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">
-                      {data?.hasCertificates.includes(r.eventId) ? (
-                        <button
-                          onClick={() => downloadCert(r.eventId, r.teamId)}
-                          disabled={downloading === r.eventId}
-                          className="bg-green-600 hover:bg-green-500 disabled:opacity-50 px-3 py-1 rounded text-xs transition-colors"
-                        >
-                          {downloading === r.eventId ? "..." : "Download"}
-                        </button>
-                      ) : (
-                        <span className="text-gray-600 text-xs">Not available</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </div>
   );

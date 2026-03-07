@@ -49,4 +49,98 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
+/**
+ * GET /api/teams/:eventId
+ * Returns current user's team for an event
+ */
+router.get('/:eventId', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const eventIdNum = Number(eventId);
+
+        if (Number.isNaN(eventIdNum)) {
+            return res.status(400).json({ message: 'Invalid event id' });
+        }
+
+        const registration = await prisma.registration.findFirst({
+            where: {
+                userId: req.user.id,
+                team: { eventId: eventIdNum },
+            },
+            include: {
+                team: {
+                    include: {
+                        registrations: {
+                            include: {
+                                user: { select: { id: true, name: true, email: true } }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!registration) {
+            return res.json(null);
+        }
+
+        const team = registration.team;
+        const leaderRegistration = team.registrations[0] || null;
+
+        res.json({
+            id: String(team.id),
+            name: team.name,
+            eventId: String(team.eventId),
+            leader: leaderRegistration ? {
+                id: String(leaderRegistration.user.id),
+                name: leaderRegistration.user.name,
+                email: leaderRegistration.user.email,
+            } : null,
+            members: team.registrations.map((r) => ({
+                id: String(r.user.id),
+                name: r.user.name,
+                email: r.user.email,
+            })),
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+/**
+ * DELETE /api/teams/:eventId/leave
+ * Removes current user registration from team in event
+ */
+router.delete('/:eventId/leave', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const eventIdNum = Number(eventId);
+
+        if (Number.isNaN(eventIdNum)) {
+            return res.status(400).json({ message: 'Invalid event id' });
+        }
+
+        const registration = await prisma.registration.findFirst({
+            where: {
+                userId: req.user.id,
+                team: { eventId: eventIdNum }
+            }
+        });
+
+        if (!registration) {
+            return res.status(404).json({ message: 'You are not part of a team for this event' });
+        }
+
+        await prisma.registration.delete({
+            where: { id: registration.id }
+        });
+
+        res.json({ message: 'Left team successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 module.exports = router;
