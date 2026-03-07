@@ -1,0 +1,123 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Note: SQLite does not support enums — role is stored as String
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String
+  createdAt DateTime @default(now())
+
+  registrations Registration[]
+  certificates  Certificate[]
+  judge         Judge?
+}
+
+model Event {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  description          String
+  location             String   @default("")
+  startDate            DateTime
+  endDate              DateTime
+  organizerId          Int
+  tracks               String   @default("[]")
+  publicUrl            String?
+  rulesUrl             String?
+  leaderboardPublished Boolean  @default(false)
+
+  teams       Team[]
+  certificates Certificate[]
+}
+
+model Team {
+  id      Int    @id @default(autoincrement())
+  name    String
+  eventId Int
+  status  String @default("pending")
+  track   String?
+
+  event        Event @relation(fields: [eventId], references: [id])
+  registrations Registration[]
+  submission    Submission?
+  assignments   JudgeAssignment[]
+  scores        Score[]
+}
+
+model Registration {
+  id     Int @id @default(autoincrement())
+  teamId Int
+  userId Int
+
+  team Team @relation(fields: [teamId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Submission {
+  id             Int     @id @default(autoincrement())
+  teamId         Int     @unique
+  repoLink       String
+  profileLink    String
+
+  summary        String?
+  techStack      String?
+  complexity     String?
+  classification String?
+  usabilityScore Float?
+
+  status         String
+
+  team           Team    @relation(fields: [teamId], references: [id])
+}
+
+model Judge {
+  id       Int @id @default(autoincrement())
+  userId   Int @unique
+  expertise String
+
+  user User @relation(fields: [userId], references: [id])
+  assignments JudgeAssignment[]
+  scores Score[]
+}
+
+model JudgeAssignment {
+  id      Int @id @default(autoincrement())
+  judgeId Int
+  teamId  Int
+
+  judge Judge @relation(fields: [judgeId], references: [id])
+  team  Team  @relation(fields: [teamId], references: [id])
+}
+
+model Score {
+  id              Int @id @default(autoincrement())
+  judgeId         Int
+  teamId          Int
+  innovationScore Float
+  technicalScore  Float
+  usabilityScore  Float
+  finalScore      Float
+
+  judge Judge @relation(fields: [judgeId], references: [id])
+  team  Team  @relation(fields: [teamId], references: [id])
+}
+
+model Certificate {
+  id             Int @id @default(autoincrement())
+  userId         Int
+  eventId        Int
+  certificateUrl String
+
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+}
