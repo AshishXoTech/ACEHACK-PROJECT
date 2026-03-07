@@ -33,6 +33,94 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 /**
+ * GET /api/events/:eventId/leaderboard
+ * Public leaderboard for a specific event
+ */
+router.get('/:eventId/leaderboard', async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const id = Number(eventId);
+
+        if (Number.isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid event id' });
+        }
+
+        const event = await prisma.event.findUnique({
+            where: { id },
+            select: { id: true, leaderboardPublished: true }
+        });
+
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        if (!event.leaderboardPublished) {
+            return res.json({ published: false, entries: [] });
+        }
+
+        const teams = await prisma.team.findMany({
+            where: { eventId: id },
+            include: { scores: true }
+        });
+
+        const entries = teams
+            .map(t => ({
+                teamId: String(t.id),
+                teamName: t.name,
+                score: t.scores.reduce((sum, s) => sum + s.finalScore, 0)
+            }))
+            .sort((a, b) => b.score - a.score)
+            .map((entry, index) => ({
+                rank: index + 1,
+                ...entry,
+            }));
+
+        res.json({ published: true, entries });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+/**
+ * GET /api/events/:eventId/resources
+ * Returns event resource links/details for participants
+ */
+router.get('/:eventId/resources', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const id = Number(eventId);
+
+        if (Number.isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid event id' });
+        }
+
+        const event = await prisma.event.findUnique({
+            where: { id },
+            select: {
+                publicUrl: true,
+                rulesUrl: true,
+            }
+        });
+
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        res.json({
+            discord: event.publicUrl || "",
+            rulebook: event.rulesUrl || "",
+            datasets: [],
+            apiKeys: [],
+            mentorSchedule: "",
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+/**
  * GET /api/events/:eventId
  * Returns a single event
  */
@@ -423,6 +511,37 @@ router.post('/:eventId/leaderboard/publish', authMiddleware, async (req, res) =>
             data: { leaderboardPublished: true }
         });
         res.json({ message: 'Leaderboard published' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+/**
+ * GET /api/events/:eventId/certificates/:teamId
+ * Download participant certificate for an event
+ */
+router.get('/:eventId/certificates/:teamId', authMiddleware, async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const eventIdNum = Number(eventId);
+
+        if (Number.isNaN(eventIdNum)) {
+            return res.status(400).json({ message: 'Invalid event id' });
+        }
+
+        const cert = await prisma.certificate.findFirst({
+            where: {
+                eventId: eventIdNum,
+                userId: req.user.id,
+            }
+        });
+
+        if (!cert) {
+            return res.status(404).json({ message: 'Certificate not found' });
+        }
+
+        res.redirect(cert.certificateUrl);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

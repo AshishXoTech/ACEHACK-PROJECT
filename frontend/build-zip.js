@@ -686,7 +686,7 @@ import axios from "axios";
 import AIAnalysisChart from "@/components/ai/AIAnalysisChart";
 import { PageSkeleton } from "@/components/ui/LoadingSkeleton";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001/api";
 
 interface AIAnalysis {
   overallScore: number;
@@ -1134,7 +1134,7 @@ import axios from "axios";
 import { certificateService } from "@/services/certificate.service";
 import { PageSkeleton } from "@/components/ui/LoadingSkeleton";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001/api";
 
 interface Registration {
   eventId: string;

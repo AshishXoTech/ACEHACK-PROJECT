@@ -4,6 +4,98 @@ const prisma = require('../config/prisma');
 const authMiddleware = require('../middleware/auth.middleware');
 
 /**
+ * GET /api/participant/events
+ * Returns participant-registered hackathons
+ */
+router.get('/events', authMiddleware, async (req, res) => {
+    try {
+        const registrations = await prisma.registration.findMany({
+            where: { userId: req.user.id },
+            include: {
+                team: {
+                    include: {
+                        event: true,
+                    }
+                }
+            }
+        });
+
+        const events = registrations.map((reg) => ({
+            eventId: String(reg.team.eventId),
+            eventName: reg.team.event.name,
+            banner: "",
+            status: reg.team.status || "pending",
+            teamName: reg.team.name,
+        }));
+
+        res.json({ events });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+/**
+ * GET /api/participant/dashboard
+ */
+router.get('/dashboard', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get user data
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, name: true, email: true }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Get registrations with team and event details
+        const registrations = await prisma.registration.findMany({
+            where: { userId },
+            include: {
+                team: {
+                    include: {
+                        event: true,
+                        submission: true
+                    }
+                }
+            }
+        });
+
+        // Transform registrations into the frontend format
+        const formattedRegistrations = registrations.map(reg => ({
+            eventId: String(reg.team.eventId),
+            eventName: reg.team.event.name,
+            status: reg.team.status, // Using team status as registration status
+            teamId: String(reg.team.id),
+            teamName: reg.team.name,
+            members: [], // Will be filled by team members query
+            submissionId: reg.team.submission ? String(reg.team.submission.id) : null
+        }));
+
+        // Get certificates for user
+        const certificates = await prisma.certificate.findMany({
+            where: { userId },
+            select: { id: true, eventId: true }
+        });
+
+        const hasCertificates = certificates.map(c => String(c.eventId));
+
+        res.json({
+            user,
+            registrations: formattedRegistrations,
+            hasCertificates
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+/**
  * GET /api/participant/events/:eventId/submission
  */
 router.get('/events/:eventId/submission', authMiddleware, async (req, res) => {

@@ -78,6 +78,12 @@ const navItems: NavItem[] = [
     roles: ["judge"],
   },
   {
+    href: "/my-hackathons",
+    label: "My Hackathons",
+    icon: CalendarPlus,
+    roles: ["participant"],
+  },
+  {
     href: "/dashboard/participant",
     label: "Participant Dashboard",
     icon: LayoutDashboard,

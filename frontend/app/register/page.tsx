@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { UserPlus, Mail, Lock, UserCircle2, GitBranch } from "lucide-react";
+import { UserPlus, GitBranch } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import type { UserRole } from "@/services/auth.service";
 
@@ -16,10 +16,27 @@ interface RegisterFormValues {
   role: UserRole;
 }
 
+function resolveErrorMessage(err: unknown): string {
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "response" in err &&
+    typeof (err as { response?: { data?: { message?: string } } }).response?.data?.message === "string"
+  ) {
+    return (err as { response?: { data?: { message?: string } } }).response!.data!.message!;
+  }
+
+  if (err instanceof Error) {
+    return err.message;
+  }
+
+  return "Unable to register. Please try again.";
+}
+
 const roleRedirects: Record<UserRole, string> = {
   organizer: "/dashboard/organizer",
   judge: "/dashboard/judge",
-  participant: "/dashboard/participant",
+  participant: "/my-hackathons",
 };
 
 export default function RegisterPage() {
@@ -47,14 +64,10 @@ export default function RegisterPage() {
 
     try {
       await registerUser(values);
-      const redirectTo = roleRedirects[values.role] ?? "/dashboard/participant";
+      const redirectTo = roleRedirects[values.role] ?? "/my-hackathons";
       router.replace(redirectTo);
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message ??
-        err?.message ??
-        "Unable to register. Please try again.";
-      setError(message);
+    } catch (err: unknown) {
+      setError(resolveErrorMessage(err));
     } finally {
       setLoading(false);
     }

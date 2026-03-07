@@ -9,10 +9,38 @@ const authMiddleware = require('../middleware/auth.middleware');
  */
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { eventId, teamId, repoUrl, summary, demoUrl } = req.body;
+        const {
+            eventId,
+            teamId: rawTeamId,
+            repoUrl,
+            summary,
+            demoUrl,
+            repo,
+            description,
+            demo,
+        } = req.body;
 
-        if (!teamId || !repoUrl) {
-            return res.status(400).json({ message: 'teamId and repoUrl are required' });
+        let teamId = rawTeamId;
+        const resolvedRepoUrl = repoUrl || repo;
+        const resolvedSummary = summary || description || '';
+        const resolvedDemoUrl = demoUrl || demo || '';
+
+        if (!teamId && eventId) {
+            const registration = await prisma.registration.findFirst({
+                where: {
+                    userId: req.user.id,
+                    team: { eventId: Number(eventId) }
+                },
+                select: { teamId: true }
+            });
+
+            if (registration) {
+                teamId = String(registration.teamId);
+            }
+        }
+
+        if (!teamId || !resolvedRepoUrl) {
+            return res.status(400).json({ message: 'teamId and repository URL are required' });
         }
 
         const team = await prisma.team.findUnique({ where: { id: Number(teamId) } });
@@ -25,9 +53,9 @@ router.post('/', authMiddleware, async (req, res) => {
             submission = await prisma.submission.update({
                 where: { teamId: Number(teamId) },
                 data: {
-                    repoLink: repoUrl,
-                    profileLink: demoUrl || '',
-                    summary: summary || '',
+                    repoLink: resolvedRepoUrl,
+                    profileLink: resolvedDemoUrl,
+                    summary: resolvedSummary,
                     status: 'submitted'
                 }
             });
@@ -35,9 +63,9 @@ router.post('/', authMiddleware, async (req, res) => {
             submission = await prisma.submission.create({
                 data: {
                     team: { connect: { id: Number(teamId) } },
-                    repoLink: repoUrl,
-                    profileLink: demoUrl || '',
-                    summary: summary || '',
+                    repoLink: resolvedRepoUrl,
+                    profileLink: resolvedDemoUrl,
+                    summary: resolvedSummary,
                     status: 'submitted'
                 }
             });

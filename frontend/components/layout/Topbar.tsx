@@ -8,6 +8,7 @@ const titleMap: Record<string, string> = {
   "/dashboard/organizer": "Organizer Control Room",
   "/dashboard/judge": "Judge Console",
   "/dashboard/participant": "Participant Workspace",
+  "/my-hackathons": "My Hackathons",
 };
 
 function resolveTitle(pathname: string): string {
@@ -15,6 +16,9 @@ function resolveTitle(pathname: string): string {
     pathname.startsWith(key),
   );
   if (matchedKey) return titleMap[matchedKey];
+  if (pathname.includes("/workspace") || pathname.includes("/team") || pathname.includes("/submission") || pathname.includes("/resources") || pathname.includes("/certificate")) {
+    return "Event Workspace";
+  }
   if (pathname.startsWith("/leaderboard")) return "Leaderboard";
   return "HackFlow AI";
 }

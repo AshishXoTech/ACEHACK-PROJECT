@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { LogIn, Mail, Lock, GitBranch } from "lucide-react";
+import { LogIn, GitBranch } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import type { UserRole } from "@/services/auth.service";
 
@@ -14,10 +14,27 @@ interface LoginFormValues {
   password: string;
 }
 
+function resolveErrorMessage(err: unknown): string {
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "response" in err &&
+    typeof (err as { response?: { data?: { message?: string } } }).response?.data?.message === "string"
+  ) {
+    return (err as { response?: { data?: { message?: string } } }).response!.data!.message!;
+  }
+
+  if (err instanceof Error) {
+    return err.message;
+  }
+
+  return "Unable to sign in. Please check your credentials.";
+}
+
 const roleRedirects: Record<UserRole, string> = {
   organizer: "/dashboard/organizer",
   judge: "/dashboard/judge",
-  participant: "/dashboard/participant",
+  participant: "/my-hackathons",
 };
 
 export default function LoginPage() {
@@ -46,17 +63,13 @@ export default function LoginPage() {
       const stored = window.localStorage.getItem("hackflow_ai_user");
       if (stored) {
         const user = JSON.parse(stored) as { role: UserRole };
-        const redirectTo = roleRedirects[user.role] ?? "/dashboard/participant";
+        const redirectTo = roleRedirects[user.role] ?? "/my-hackathons";
         router.replace(redirectTo);
       } else {
-        router.replace("/dashboard/participant");
+        router.replace("/my-hackathons");
       }
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message ??
-        err?.message ??
-        "Unable to sign in. Please check your credentials.";
-      setError(message);
+    } catch (err: unknown) {
+      setError(resolveErrorMessage(err));
     } finally {
       setLoading(false);
     }
