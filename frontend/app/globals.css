@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* -------------------------------
+   ROOT THEME
+--------------------------------*/
+
 :root {
   --background: #020617;
   --foreground: #e5e7eb;
@@ -12,23 +16,85 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* -------------------------------
+   GLOBAL BODY
+--------------------------------*/
+
 body {
   background: radial-gradient(circle at top left, #0f172a, #020617 55%);
   color: var(--foreground);
   min-height: 100vh;
+  scroll-behavior: smooth;
+  @apply antialiased;
 }
+
+/* -------------------------------
+   GLOBAL LAYOUT SYSTEM
+--------------------------------*/
+
+.container {
+  @apply max-w-7xl mx-auto px-6;
+}
+
+.section {
+  @apply py-24;
+}
+
+/* -------------------------------
+   TYPOGRAPHY SYSTEM
+--------------------------------*/
+
+.heading-xl {
+  @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+}
+
+.heading-lg {
+  @apply text-3xl md:text-4xl font-semibold tracking-tight;
+}
+
+.heading-md {
+  @apply text-xl md:text-2xl font-semibold;
+}
+
+.subtext {
+  @apply text-slate-400 text-lg leading-relaxed;
+}
+
+/* -------------------------------
+   GLASS PANEL
+--------------------------------*/
 
 .glass-panel {
   @apply rounded-2xl border border-slate-800/80 bg-slate-900/70 shadow-xl shadow-slate-950/60 backdrop-blur-xl;
 }
 
+/* -------------------------------
+   CARD SYSTEM
+--------------------------------*/
+
+.card {
+  @apply rounded-xl border border-slate-800 bg-slate-900 p-6 transition-all duration-300;
+}
+
+.card-hover {
+  @apply hover:scale-[1.02] hover:border-cyan-400;
+}
+
+/* -------------------------------
+   BUTTON SYSTEM
+--------------------------------*/
+
 .btn-primary {
-  @apply inline-flex items-center justify-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/30 transition hover:bg-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;
+  @apply inline-flex items-center justify-center rounded-lg bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/30 transition hover:bg-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;
 }
 
 .btn-outline {
-  @apply inline-flex items-center justify-center rounded-lg border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-cyan-500 hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;
+  @apply inline-flex items-center justify-center rounded-lg border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-cyan-500 hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950;
 }
+
+/* -------------------------------
+   FORM SYSTEM
+--------------------------------*/
 
 .input {
   @apply h-10 w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 text-sm text-slate-100 shadow-sm outline-none ring-0 transition placeholder:text-slate-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500;
@@ -42,9 +108,17 @@ body {
   @apply text-sm font-medium text-slate-200;
 }
 
+/* -------------------------------
+   BADGE SYSTEM
+--------------------------------*/
+
 .badge {
   @apply inline-flex items-center rounded-full border border-slate-700 px-2.5 py-0.5 text-xs font-medium;
 }
+
+/* -------------------------------
+   TABLE SYSTEM
+--------------------------------*/
 
 .table-wrapper {
   @apply rounded-2xl border border-slate-800/80 bg-slate-900/70 shadow-xl shadow-slate-950/60 backdrop-blur-xl overflow-hidden;
@@ -66,7 +140,49 @@ body {
   @apply border-t border-slate-800/80 px-4 py-3 align-middle text-sm text-slate-100;
 }
 
+/* -------------------------------
+   GRID SYSTEM
+--------------------------------*/
+
 .card-grid {
-  @apply grid gap-4 sm:grid-cols-2 xl:grid-cols-4;
+  @apply grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
 }
 
+/* -------------------------------
+   LANDING PAGE SPECIAL EFFECTS
+--------------------------------*/
+
+.hero-gradient {
+  background: radial-gradient(
+      circle at 20% 20%,
+      rgba(34, 211, 238, 0.15),
+      transparent 40%
+    ),
+    radial-gradient(circle at 80% 0%, rgba(16, 185, 129, 0.1), transparent 50%);
+}
+
+.glow-border {
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.2),
+    0 0 20px rgba(34, 211, 238, 0.1);
+}
+
+/* -------------------------------
+   SCROLLBAR
+--------------------------------*/
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
