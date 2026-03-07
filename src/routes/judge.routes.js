@@ -16,6 +16,13 @@ router.get(
   judgeController.getAssignedTeams
 );
 
+router.get(
+  '/submission/:teamId',
+  authMiddleware,
+  roleMiddleware('judge'),
+  judgeController.getSubmissionByTeam
+);
+
 
 // =========================
 // SUBMIT SCORE

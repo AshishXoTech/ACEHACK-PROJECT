@@ -14,6 +14,8 @@ const teamsRoutes = require('./routes/teams.routes');
 const submissionsRoutes = require('./routes/submissions.routes');
 const leaderboardRoutes = require('./routes/leaderboard.routes');
 const participantApiRoutes = require('./routes/participant-api.routes');
+const aiRoutes = require('./routes/ai.routes');
+const sponsorsRoutes = require('./routes/sponsors.routes');
 
 const app = express();
 
@@ -39,6 +41,8 @@ app.use('/api/teams', teamsRoutes);
 app.use('/api/submissions', submissionsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/participant', participantApiRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/sponsors', sponsorsRoutes);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {

@@ -19,18 +19,48 @@ export interface AssignedTeam {
   eventId: string;
   eventName: string;
   submissionId: string | null;
-  repoUrl: string | null;
-  demoUrl: string | null;
+  repoUrl: string;
+  readmeSummary: string;
+  members: string[];
   evaluated: boolean;
   score: number | null;
 }
 
 export interface EvaluationPayload {
+  teamId: string;
   innovation: number;
-  technicalComplexity: number;
-  practicalImpact: number;
+  technical: number;
+  impact: number;
   presentation: number;
-  feedback?: string;
+  comments?: string;
+}
+
+export interface JudgeSubmissionDetail {
+  teamId: string;
+  teamName: string;
+  eventId: string;
+  eventName: string;
+  members: { id: string; name: string; email: string }[];
+  submissionId: string;
+  repo: string;
+  demo: string;
+  readme: string;
+  description: string;
+  status: string;
+}
+
+export interface AIAnalysisPayload {
+  repoUrl: string;
+  readme: string;
+  packageJson?: string;
+  requirements?: string;
+}
+
+export interface AIAnalysisResult {
+  summary: string;
+  category: string;
+  techStack: string[];
+  commitFrequency: string;
 }
 
 export const judgeService = {
@@ -45,6 +75,16 @@ export const judgeService = {
   getAssignedTeams: () =>
     api.get<{ teams: AssignedTeam[] }>("/judge/assigned-teams").then(r => r.data),
 
-  submitEvaluation: (submissionId: string, payload: EvaluationPayload) =>
+  getSubmissionByTeam: (teamId: string) =>
+    api.get<JudgeSubmissionDetail>(`/judge/submission/${teamId}`).then((r) => r.data),
+
+  submitScore: (payload: EvaluationPayload) =>
+    api.post("/judge/score", payload).then((r) => r.data),
+
+  analyzeProject: (payload: AIAnalysisPayload) =>
+    api.post<AIAnalysisResult>("/ai/analyze-project", payload).then((r) => r.data),
+
+  // Backward compatibility for older evaluate route.
+  submitEvaluation: (submissionId: string, payload: Omit<EvaluationPayload, "teamId">) =>
     api.post(`/submissions/${submissionId}/evaluate`, payload).then(r => r.data),
 };

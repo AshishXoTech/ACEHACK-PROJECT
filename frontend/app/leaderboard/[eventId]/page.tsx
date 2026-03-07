@@ -5,23 +5,55 @@ import { leaderboardService, LeaderboardEntry } from "@/services/leaderboard.ser
 import { PageSkeleton } from "@/components/ui/LoadingSkeleton";
 
 const MEDALS: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
+const IS_DEV = process.env.NODE_ENV === "development";
+
+// DUMMY DATA (DEV ONLY): fallback leaderboard for judge/participant flow testing.
+const DUMMY_LEADERBOARD_ENTRIES: LeaderboardEntry[] = [
+  { rank: 1, teamId: "1", teamName: "Code Ninjas", score: 32 },
+  { rank: 2, teamId: "2", teamName: "Dev Wizards", score: 29 },
+];
 
 export default function LeaderboardPage() {
   const { eventId } = useParams<{ eventId: string }>();
 
-  const [entries,   setEntries]   = useState<LeaderboardEntry[]>([]);
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [published, setPublished] = useState(false);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState("");
-  const [visible,   setVisible]   = useState<Set<number>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [visible, setVisible] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    leaderboardService.get(eventId)
-      .then(d => {
-        setEntries(d.entries);
+    leaderboardService
+      .get(eventId)
+      .then((d) => {
+        const loadedEntries = d.entries || [];
+        if (loadedEntries.length === 0 && IS_DEV) {
+          setPublished(false);
+          setEntries(DUMMY_LEADERBOARD_ENTRIES);
+          DUMMY_LEADERBOARD_ENTRIES.forEach((_, i) => {
+            setTimeout(
+              () => setVisible((p) => {
+                const n = new Set(p);
+                n.add(i);
+                return n;
+              }),
+              i * 70,
+            );
+          });
+          return;
+        }
+
+        setEntries(loadedEntries);
         setPublished(d.published);
-        d.entries.forEach((_, i) => {
-          setTimeout(() => setVisible(p => { const n = new Set(p); n.add(i); return n; }), i * 70);
+        loadedEntries.forEach((_, i) => {
+          setTimeout(
+            () => setVisible((p) => {
+              const n = new Set(p);
+              n.add(i);
+              return n;
+            }),
+            i * 70,
+          );
         });
       })
       .catch(() => setError("Could not load leaderboard."))
@@ -37,7 +69,7 @@ export default function LeaderboardPage() {
           <div>
             <h1 className="text-2xl font-bold">Leaderboard</h1>
             <p className="text-gray-400 text-sm mt-1">
-              {published ? "✅ Results published" : "⏳ Results not yet published"}
+              {published ? "Results published" : "Results not yet published"}
             </p>
           </div>
         </div>
@@ -50,7 +82,7 @@ export default function LeaderboardPage() {
 
         {entries.length === 0 && !error ? (
           <div className="bg-[#0f172a] border border-slate-800 rounded-xl p-12 text-center text-gray-500">
-            No results available yet.
+            {published ? "No results available yet." : "Leaderboard not published yet."}
           </div>
         ) : (
           <div className="bg-[#0f172a] border border-slate-800 rounded-xl overflow-hidden">
@@ -76,12 +108,17 @@ export default function LeaderboardPage() {
                     </td>
                     <td className="px-4 py-3 font-medium text-white">{e.teamName}</td>
                     <td className="px-4 py-3 text-right font-bold">
-                      <span className={
-                        e.rank === 1 ? "text-yellow-400 text-lg" :
-                        e.rank === 2 ? "text-gray-300" :
-                        e.rank === 3 ? "text-amber-600" :
-                        "text-blue-400"
-                      }>
+                      <span
+                        className={
+                          e.rank === 1
+                            ? "text-yellow-400 text-lg"
+                            : e.rank === 2
+                              ? "text-gray-300"
+                              : e.rank === 3
+                                ? "text-amber-600"
+                                : "text-blue-400"
+                        }
+                      >
                         {e.score}
                       </span>
                     </td>

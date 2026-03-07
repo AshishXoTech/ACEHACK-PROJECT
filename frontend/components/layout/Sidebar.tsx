@@ -73,8 +73,20 @@ const navItems: NavItem[] = [
   },
   {
     href: "/dashboard/judge",
-    label: "Judge Dashboard",
+    label: "Assigned Teams",
     icon: GitBranch,
+    roles: ["judge"],
+  },
+  {
+    href: "/dashboard/judge#evaluate-teams",
+    label: "Evaluate Teams",
+    icon: Medal,
+    roles: ["judge"],
+  },
+  {
+    href: "/dashboard/judge#ai-analysis",
+    label: "AI Analysis",
+    icon: BarChart3,
     roles: ["judge"],
   },
   {

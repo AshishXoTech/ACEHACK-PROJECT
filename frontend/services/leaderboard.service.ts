@@ -15,7 +15,7 @@ export interface LeaderboardData {
 export const leaderboardService = {
   get: (eventId: string) =>
     api.get<{ published?: boolean; isPublished?: boolean; entries: LeaderboardEntry[] }>(
-      `/events/${eventId}/leaderboard`,
+      `/leaderboard/${eventId}`,
     ).then((r) => ({
       published: r.data.published ?? r.data.isPublished ?? false,
       entries: r.data.entries,

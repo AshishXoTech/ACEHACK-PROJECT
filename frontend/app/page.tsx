@@ -42,6 +42,12 @@ export default function Home() {
               <Trophy className="h-3.5 w-3.5 text-yellow-300" />
               Live leaderboard
             </Link>
+            <Link
+              href="/sponsors"
+              className="hidden rounded-full border border-slate-800/80 bg-slate-950/80 px-3 py-1.5 text-slate-300 hover:border-cyan-500/60 hover:text-cyan-200 sm:inline-flex"
+            >
+              Sponsors
+            </Link>
             <Link href="/login" className="btn-outline">
               Sign in
             </Link>
