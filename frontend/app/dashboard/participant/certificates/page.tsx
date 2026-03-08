@@ -16,20 +16,24 @@ export default function ParticipantCertificatesPage() {
     const [toast, setToast] = useState<{ ok: boolean; msg: string } | null>(null);
 
     useEffect(() => {
-        getParticipantDashboardData()
-            .then(setData)
-            .catch((err: unknown) => {
-                const message =
-                    typeof err === "object" &&
-                    err !== null &&
-                    "response" in err &&
-                    typeof (err as { response?: { data?: { message?: string } } }).response?.data?.message === "string"
-                        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-                        : "Failed to load certificates.";
-                setError(message);
-            })
-            .finally(() => setLoading(false));
-    }, []);
+    getParticipantDashboardData()
+        .then(setData)
+        .catch((err: unknown) => {
+            let message = "Failed to load certificates.";
+
+            if (
+                typeof err === "object" &&
+                err !== null &&
+                "response" in err &&
+                typeof (err as any).response?.data?.message === "string"
+            ) {
+                message = (err as any).response.data.message;
+            }
+
+            setError(message);
+        })
+        .finally(() => setLoading(false));
+}, []);
 
     const downloadCert = async (eventId: string, teamId: string) => {
         setDownloading(eventId);
