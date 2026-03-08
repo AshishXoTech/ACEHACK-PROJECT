@@ -1,0 +1,218 @@
+# 🚀 HackFlow AI
+
+> A centralized platform that streamlines hackathon management, simplifies the judging workflow, and enhances the experience for organizers, judges, and participants.
+
+---
+
+## 📌 Problem Statement
+
+Hackathons are one of the most powerful platforms for innovation — but organizing and managing them remains highly manual, fragmented, and inefficient.
+
+**Organizers** juggle multiple disconnected tools (Google Forms, spreadsheets, email, messaging apps) to handle registrations, submissions, judge assignments, and scoring — leading to heavy administrative overhead and poor coordination.
+
+**Judges** face challenges during evaluation, with project repositories, demo videos, and documentation scattered across different links, making fair and consistent scoring difficult.
+
+**Participants** lack transparency in the submission and judging process, with no clear visibility into their evaluation status or easy access to results and certificates.
+
+HackFlow AI addresses all of these pain points through a single, intelligent platform.
+
+---
+
+## ✨ Features
+
+### For Organizers
+- 📋 Centralized registration and team management
+- 📁 Unified project submission tracking
+- ⚖️ Automated judge assignment and workload balancing
+- 📊 Real-time event progress dashboard
+- 🏆 Certificate generation and results publishing
+
+### For Judges
+- 🗂️ Structured evaluation dashboard with all project assets in one place
+- 📝 Consistent, rubric-based scoring system
+- 🔄 Easy project comparison and review workflow
+- 📈 Scoring analytics and progress tracking
+
+### For Participants
+- 📤 Simple, guided project submission flow
+- 🔍 Real-time visibility into evaluation status
+- 🎓 Automated certificate access upon results
+- 🔔 Event updates and notifications
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React.js / Next.js |
+| Backend | Node.js / Express |
+| Database | PostgreSQL / MongoDB |
+| Auth | OAuth 2.0 / JWT |
+| AI/ML | OpenAI API / Custom Models |
+| Storage | AWS S3 / Cloudinary |
+| Deployment | Docker / Vercel / AWS |
+
+> ⚠️ *Tech stack is subject to change based on development decisions.*
+
+---
+
+## 🏗️ Architecture Overview
+
+```
+┌─────────────────────────────────────────────────┐
+│                   HackFlow AI                   │
+├───────────────┬─────────────────┬───────────────┤
+│   Organizer   │     Judge       │  Participant  │
+│   Dashboard   │   Dashboard     │   Dashboard   │
+├───────────────┴─────────────────┴───────────────┤
+│              Core Application Layer             │
+│  Registration │ Submissions │ Scoring │ Certs   │
+├─────────────────────────────────────────────────┤
+│               AI / Automation Layer             │
+│  Judge Assignment │ Scoring Insights │ Notifs  │
+├─────────────────────────────────────────────────┤
+│                  Data Layer                     │
+│          Database │ File Storage │ Cache        │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js >= 18.x
+- npm or yarn
+- PostgreSQL (or Docker)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-org/hackflow-ai.git
+cd hackflow-ai
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# Run database migrations
+npm run db:migrate
+
+# Start the development server
+npm run dev
+```
+
+The app will be available at `http://localhost:3000`.
+
+---
+
+## ⚙️ Environment Variables
+
+```env
+# App
+PORT=3000
+NODE_ENV=development
+
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/hackflow
+
+# Auth
+JWT_SECRET=your_jwt_secret
+OAUTH_CLIENT_ID=your_oauth_client_id
+OAUTH_CLIENT_SECRET=your_oauth_client_secret
+
+# Storage
+AWS_ACCESS_KEY_ID=your_aws_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret
+AWS_S3_BUCKET=your_bucket_name
+
+# AI
+OPENAI_API_KEY=your_openai_key
+```
+
+---
+
+## 📁 Project Structure
+
+```
+hackflow-ai/
+├── client/                 # Frontend application
+│   ├── components/         # Reusable UI components
+│   ├── pages/              # Route-based pages
+│   └── styles/             # Global styles
+├── server/                 # Backend application
+│   ├── controllers/        # Request handlers
+│   ├── models/             # Database models
+│   ├── routes/             # API routes
+│   ├── services/           # Business logic
+│   └── middleware/         # Auth, validation, etc.
+├── ai/                     # AI/ML modules
+├── docs/                   # Documentation
+├── tests/                  # Test suites
+└── docker-compose.yml
+```
+
+---
+
+## 🧪 Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+
+# Run specific test suite
+npm run test:unit
+npm run test:integration
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add your feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for our code of conduct and contribution guidelines.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👥 Team
+
+Built with ❤️ at [Hackathon Name] by [Your Team Name].
+
+| Name | Role | GitHub |
+|------|------|--------|
+| — | Full Stack | — |
+| — | Backend | — |
+| — | Frontend | — |
+| — | AI/ML | — |
+
+---
+
+## 📬 Contact
+
+For questions or feedback, reach out at **your-email@example.com** or open an issue on GitHub.
+
+---
+
+<p align="center">Made with ❤️ by the HackFlow AI Team</p>
