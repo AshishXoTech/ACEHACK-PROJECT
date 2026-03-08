@@ -12,7 +12,7 @@ import { ToastMessage } from "@/components/ui/ToastMessage";
 interface Registration {
   eventId: string;
   eventName: string;
-  status: string;
+  status?: string;
   teamId: string;
   teamName: string;
   members?: string[];
