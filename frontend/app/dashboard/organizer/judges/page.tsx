@@ -6,8 +6,11 @@ import { RowSkeleton } from "@/components/ui/LoadingSkeleton";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { RoleGuard } from "@/middleware/RoleGuard";
 import { Users, Loader2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function JudgeAssignmentPage() {
+  const { user, loading: authLoading } = useAuth();
+  const isOrganizer = user?.role === "organizer";
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>("");
   const [assignments, setAssignments] = useState<JudgeAssignment[]>([]);
@@ -25,6 +28,7 @@ export default function JudgeAssignmentPage() {
 
   // Load events on mount
   useEffect(() => {
+    if (authLoading || !isOrganizer) return;
     getEvents()
       .then((list) => {
         setEvents(list);
@@ -32,10 +36,11 @@ export default function JudgeAssignmentPage() {
       })
       .catch(() => notify("Failed to load events.", false))
       .finally(() => setEventsLoading(false));
-  }, []);
+  }, [authLoading, isOrganizer]);
 
   // Load assignments whenever selected event changes
   useEffect(() => {
+    if (authLoading || !isOrganizer) return;
     if (!selectedEventId) return;
     setLoading(true);
     judgeService
@@ -46,7 +51,7 @@ export default function JudgeAssignmentPage() {
       })
       .catch(() => notify("Failed to load assignments.", false))
       .finally(() => setLoading(false));
-  }, [selectedEventId]);
+  }, [selectedEventId, authLoading, isOrganizer]);
 
   const assign = async (teamId: string, judgeId: string) => {
     setSaving(teamId);

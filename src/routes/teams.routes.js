@@ -11,21 +11,35 @@ router.post('/', authMiddleware, async (req, res) => {
     try {
         const { name, members, eventId } = req.body;
 
-        if (!name) {
-            return res.status(400).json({ message: 'Team name is required' });
+        if (!name || !eventId) {
+            return res.status(400).json({ message: 'Team name and eventId are required' });
         }
 
-        // If eventId provided, use it; otherwise use the first event
-        let resolvedEventId = eventId;
-        if (!resolvedEventId) {
-            const firstEvent = await prisma.event.findFirst({ orderBy: { id: 'asc' } });
-            resolvedEventId = firstEvent ? firstEvent.id : 1;
+        const resolvedEventId = Number(eventId);
+        if (Number.isNaN(resolvedEventId)) {
+            return res.status(400).json({ message: 'Invalid event id' });
+        }
+
+        const event = await prisma.event.findUnique({ where: { id: resolvedEventId } });
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        const existingRegistration = await prisma.registration.findFirst({
+            where: {
+                userId: req.user.id,
+                team: { eventId: resolvedEventId }
+            }
+        });
+
+        if (existingRegistration) {
+            return res.status(400).json({ message: 'You are already part of a team for this event' });
         }
 
         const team = await prisma.team.create({
             data: {
                 name,
-                eventId: Number(resolvedEventId),
+                eventId: resolvedEventId,
             }
         });
 
@@ -34,13 +48,72 @@ router.post('/', authMiddleware, async (req, res) => {
             data: { teamId: team.id, userId: req.user.id }
         });
 
-        // Register additional members by name if provided (best effort)
-        // In a real system, you'd look up by email
+        const invited = [];
+        const skipped = [];
+        const memberEmails = Array.isArray(members) ? members : [];
+
+        if (memberEmails.length > 0) {
+            const users = await prisma.user.findMany({
+                where: { email: { in: memberEmails } },
+                select: { id: true, email: true },
+            });
+
+            const foundEmailSet = new Set(users.map((u) => u.email));
+            const userIds = users.map((u) => u.id);
+
+            if (userIds.length > 0) {
+                const alreadyRegistered = await prisma.registration.findMany({
+                    where: {
+                        teamId: team.id,
+                        userId: { in: userIds },
+                    },
+                    select: { userId: true },
+                });
+                const alreadySet = new Set(alreadyRegistered.map((r) => r.userId));
+
+                const toCreate = userIds
+                    .filter((id) => !alreadySet.has(id))
+                    .map((id) => ({ teamId: team.id, userId: id }));
+
+                if (toCreate.length > 0) {
+                    await prisma.registration.createMany({ data: toCreate });
+                }
+
+                for (const user of users) {
+                    if (!alreadySet.has(user.id)) {
+                        invited.push(user.email);
+                    }
+                }
+            }
+
+            for (const email of memberEmails) {
+                if (!foundEmailSet.has(email)) {
+                    skipped.push(email);
+                }
+            }
+        }
+
+        const teamWithMembers = await prisma.team.findUnique({
+            where: { id: team.id },
+            include: {
+                registrations: {
+                    include: {
+                        user: { select: { id: true, name: true, email: true } },
+                    },
+                },
+            },
+        });
 
         res.status(201).json({
-            id: String(team.id),
-            name: team.name,
-            members: members || [],
+            id: String(teamWithMembers.id),
+            name: teamWithMembers.name,
+            members: teamWithMembers.registrations.map((r) => ({
+                id: String(r.user.id),
+                name: r.user.name,
+                email: r.user.email,
+            })),
+            invited,
+            skipped,
             eventId: String(team.eventId),
         });
     } catch (error) {

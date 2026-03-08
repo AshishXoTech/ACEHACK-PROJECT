@@ -38,6 +38,7 @@ model Event {
 
   teams       Team[]
   certificates Certificate[]
+  leaderboardEntries LeaderboardEntry[]
 }
 
 model Team {
@@ -52,6 +53,7 @@ model Team {
   submission    Submission?
   assignments   JudgeAssignment[]
   scores        Score[]
+  leaderboardEntries LeaderboardEntry[]
 }
 
 model Registration {
@@ -74,10 +76,16 @@ model Submission {
   complexity     String?
   classification String?
   usabilityScore Float?
+  commitTotal    Int?
+  commitLast7Days Int?
+  commitLast30Days Int?
+  analyzedAt     DateTime?
 
   status         String
 
   team           Team    @relation(fields: [teamId], references: [id])
+  scores         Score[]
+  leaderboardEntry LeaderboardEntry?
 }
 
 model Judge {
@@ -102,14 +110,38 @@ model JudgeAssignment {
 model Score {
   id              Int @id @default(autoincrement())
   judgeId         Int
+  submissionId    Int
   teamId          Int
-  innovationScore Float
-  technicalScore  Float
-  usabilityScore  Float
-  finalScore      Float
+  innovation      Float
+  technicalComplexity Float
+  design          Float
+  impact          Float
+  comments        String?
+  totalScore      Float
+  createdAt       DateTime @default(now())
 
   judge Judge @relation(fields: [judgeId], references: [id])
+  submission Submission @relation(fields: [submissionId], references: [id])
   team  Team  @relation(fields: [teamId], references: [id])
+
+  @@unique([judgeId, submissionId])
+}
+
+model LeaderboardEntry {
+  id           Int      @id @default(autoincrement())
+  eventId      Int
+  submissionId Int      @unique
+  teamId       Int
+  totalScore   Float
+  rank         Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  event      Event      @relation(fields: [eventId], references: [id])
+  submission Submission @relation(fields: [submissionId], references: [id])
+  team       Team       @relation(fields: [teamId], references: [id])
+
+  @@unique([eventId, teamId])
 }
 
 model Certificate {
@@ -120,4 +152,16 @@ model Certificate {
 
   user  User  @relation(fields: [userId], references: [id])
   event Event @relation(fields: [eventId], references: [id])
+}
+
+model Sponsor {
+  id                  Int      @id @default(autoincrement())
+  companyName         String
+  industry            String
+  website             String
+  technologies        String
+  sponsorshipType     String
+  sponsorshipCriteria String
+  contactEmail        String
+  createdAt           DateTime @default(now())
 }

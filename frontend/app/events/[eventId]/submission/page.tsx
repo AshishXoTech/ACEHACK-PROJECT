@@ -10,7 +10,7 @@ import { getParticipantSubmission } from "@/services/submission.service";
 import { submitWorkspaceProject } from "@/services/participant-workspace.service";
 
 export default function EventSubmissionPage() {
-  const { id } = useParams<{ id: string }>();
+  const { eventId } = useParams<{ eventId: string }>();
 
   const [projectName, setProjectName] = useState("");
   const [repo, setRepo] = useState("");
@@ -22,7 +22,7 @@ export default function EventSubmissionPage() {
   const [toast, setToast] = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
-    getParticipantSubmission(id)
+    getParticipantSubmission(eventId)
       .then((submission) => {
         if (!submission) return;
         setHasSubmission(true);
@@ -33,7 +33,7 @@ export default function EventSubmissionPage() {
       })
       .catch(() => setToast({ ok: false, msg: "Could not load existing submission." }))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [eventId]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,7 +45,7 @@ export default function EventSubmissionPage() {
     setSubmitting(true);
     try {
       await submitWorkspaceProject({
-        eventId: id,
+        eventId,
         projectName: projectName.trim(),
         repo: repo.trim(),
         demo: demo.trim() || undefined,
@@ -65,7 +65,7 @@ export default function EventSubmissionPage() {
       <DashboardShell>
         <ToastMessage toast={toast} onClose={() => setToast(null)} />
         <EventWorkspaceLayout
-          eventId={id}
+          eventId={eventId}
           title="Project Submission"
           subtitle="Submit or update your project details"
         >
@@ -142,3 +142,4 @@ export default function EventSubmissionPage() {
     </RoleGuard>
   );
 }
+

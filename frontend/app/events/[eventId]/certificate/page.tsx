@@ -10,7 +10,7 @@ import { certificateService } from "@/services/certificate.service";
 import { getParticipantDashboardData } from "@/services/participant.service";
 
 export default function EventCertificatePage() {
-  const { id } = useParams<{ id: string }>();
+  const { eventId } = useParams<{ eventId: string }>();
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamStatus, setTeamStatus] = useState<string>("pending");
   const [hasCertificate, setHasCertificate] = useState(false);
@@ -21,24 +21,24 @@ export default function EventCertificatePage() {
   useEffect(() => {
     getParticipantDashboardData()
       .then((data) => {
-        const registration = data.registrations.find((r) => r.eventId === id);
+        const registration = data.registrations.find((r) => r.eventId === eventId);
         setTeamId(registration?.teamId ?? null);
         setTeamStatus(registration?.status ?? "pending");
-        setHasCertificate(data.hasCertificates.includes(id));
+        setHasCertificate(data.hasCertificates.includes(eventId));
       })
       .catch(() => setToast({ ok: false, msg: "Could not load certificate status." }))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [eventId]);
 
   const download = async (type: "participation" | "winner") => {
     if (!teamId) return;
     setDownloading(type);
     try {
-      const blob = await certificateService.download(id, teamId);
+      const blob = await certificateService.download(eventId, teamId);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${type}-certificate-${id}.pdf`;
+      a.download = `${type}-certificate-${eventId}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
       setToast({ ok: true, msg: `${type === "winner" ? "Winner" : "Participation"} certificate downloaded.` });
@@ -54,7 +54,7 @@ export default function EventCertificatePage() {
       <DashboardShell>
         <ToastMessage toast={toast} onClose={() => setToast(null)} />
         <EventWorkspaceLayout
-          eventId={id}
+          eventId={eventId}
           title="Certificates"
           subtitle="Download your certificates once available"
         >
@@ -104,3 +104,4 @@ export default function EventCertificatePage() {
     </RoleGuard>
   );
 }
+

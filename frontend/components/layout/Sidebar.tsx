@@ -73,8 +73,26 @@ const navItems: NavItem[] = [
   },
   {
     href: "/dashboard/judge",
-    label: "Judge Dashboard",
+    label: "Assigned Teams",
     icon: GitBranch,
+    roles: ["judge"],
+  },
+  {
+    href: "/dashboard/judge#ai-analysis",
+    label: "AI Analysis",
+    icon: BarChart3,
+    roles: ["judge"],
+  },
+  {
+    href: "/dashboard/judge#evaluate-teams",
+    label: "Evaluate Teams",
+    icon: Users,
+    roles: ["judge"],
+  },
+  {
+    href: "/leaderboard",
+    label: "Leaderboard",
+    icon: Trophy,
     roles: ["judge"],
   },
   {
@@ -99,7 +117,7 @@ const navItems: NavItem[] = [
     href: "/leaderboard",
     label: "Leaderboard",
     icon: Trophy,
-    roles: ["organizer", "judge", "participant"],
+    roles: ["organizer", "participant"],
   },
 ];
 
@@ -130,7 +148,9 @@ export function Sidebar() {
       <nav className="flex-1 space-y-1">
         {filteredItems.map((item) => {
           const Icon = item.icon;
-          const active = pathname.startsWith(item.href);
+          const hrefPath = item.href.split("#")[0];
+          const active =
+            pathname === hrefPath || pathname.startsWith(`${hrefPath}/`);
           return (
             <Link
               key={item.href}

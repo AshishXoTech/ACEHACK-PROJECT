@@ -2,10 +2,16 @@ import api from "./api";
 
 export interface MlAnalysis {
   summary: string;
+  category?: string;
   classification: string;
   techStack: string[];
   complexity: string;
   usabilityScore: number;
+  commitStats?: {
+    total: number;
+    last7Days: number;
+    last30Days: number;
+  };
 }
 
 export interface SubmissionPayload {
@@ -20,6 +26,7 @@ export interface Submission {
   id: string;
   teamId: string;
   teamName: string;
+  projectName?: string;
   repoUrl: string;
   demoUrl?: string;
   summary: string;
@@ -142,4 +149,3 @@ export async function downloadCertificate(
   });
   return data as Blob;
 }
-

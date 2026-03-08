@@ -1,4 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
 
 class RepoRequest(BaseModel):
-    repo_url: str
+    repo_url: str = Field(alias="repoUrl")
+
+    class Config:
+        populate_by_name = True

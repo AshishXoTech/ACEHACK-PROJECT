@@ -20,13 +20,6 @@ export default function Home() {
        <SocialProof />
        <CTA />
        <Footer />
-
-      {/* Future sections */}
-      {/* <Features /> */}
-      {/* <WhyHackflow /> */}
-      {/* <SocialProof /> */}
-      {/* <CTA /> */}
-      {/* <Footer /> */}
     </main>
   );
-}
+} 

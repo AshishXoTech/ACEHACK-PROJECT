@@ -29,23 +29,23 @@ function ResourceLink({ label, href }: { label: string; href: string }) {
 }
 
 export default function EventResourcesPage() {
-  const { id } = useParams<{ id: string }>();
+  const { eventId } = useParams<{ eventId: string }>();
   const [resources, setResources] = useState<EventResources | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    getEventResources(id)
+    getEventResources(eventId)
       .then((data) => setResources(data))
       .catch(() => setError("Could not load resources."))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [eventId]);
 
   return (
     <RoleGuard allowedRoles={["participant"]}>
       <DashboardShell>
         <EventWorkspaceLayout
-          eventId={id}
+          eventId={eventId}
           title="Resources"
           subtitle="Everything you need during the hackathon"
         >
@@ -110,3 +110,4 @@ export default function EventResourcesPage() {
     </RoleGuard>
   );
 }
+

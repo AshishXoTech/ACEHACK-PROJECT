@@ -5,10 +5,17 @@ import { useEffect, useState } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { RoleGuard } from "@/middleware/RoleGuard";
 import { PageSkeleton } from "@/components/ui/LoadingSkeleton";
-import {
-  getMyHackathons,
-  MyHackathonEvent,
-} from "@/services/participant-workspace.service";
+import api from "@/services/api";
+
+interface MyHackathonEvent {
+  eventId: string;
+  name?: string;
+  eventName?: string;
+  startDate?: string;
+  status: "approved" | "pending" | "rejected" | string;
+  teamName: string;
+  banner?: string;
+}
 
 const STATUS_STYLE: Record<string, string> = {
   approved: "bg-green-900/40 border-green-700 text-green-300",
@@ -22,8 +29,13 @@ export default function MyHackathonsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    getMyHackathons()
-      .then((items) => setEvents(items))
+    api
+      .get<MyHackathonEvent[] | { events: MyHackathonEvent[] }>("/participant/my-events")
+      .then((response) => {
+        const payload = response.data;
+        const items = Array.isArray(payload) ? payload : payload?.events || [];
+        setEvents(items);
+      })
       .catch(() => setError("Could not load your hackathons."))
       .finally(() => setLoading(false));
   }, []);
@@ -84,7 +96,7 @@ export default function MyHackathonsPage() {
                   </div>
 
                   <div className="space-y-3 p-4">
-                    <h2 className="text-lg font-semibold text-slate-100">{event.eventName}</h2>
+                    <h2 className="text-lg font-semibold text-slate-100">{event.name || event.eventName}</h2>
                     <p className="text-sm text-slate-400">Team: {event.teamName}</p>
                     <span
                       className={`inline-flex rounded-full border px-2 py-0.5 text-xs capitalize ${
@@ -93,12 +105,30 @@ export default function MyHackathonsPage() {
                     >
                       {event.status}
                     </span>
-                    <div>
+                    <div className="flex flex-wrap gap-2">
                       <Link
                         href={`/events/${event.eventId}/workspace`}
                         className="inline-flex rounded-lg border border-cyan-500/60 px-3 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-500/10"
                       >
                         Open Workspace
+                      </Link>
+                      <Link
+                        href={`/events/${event.eventId}/submission`}
+                        className="inline-flex rounded-lg border border-cyan-500/60 px-3 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-500/10"
+                      >
+                        Submit Project
+                      </Link>
+                      <Link
+                        href={`/events/${event.eventId}/resources`}
+                        className="inline-flex rounded-lg border border-cyan-500/60 px-3 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-500/10"
+                      >
+                        View Resources
+                      </Link>
+                      <Link
+                        href={`/events/${event.eventId}/certificate`}
+                        className="inline-flex rounded-lg border border-cyan-500/60 px-3 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-500/10"
+                      >
+                        View Certificate
                       </Link>
                     </div>
                   </div>

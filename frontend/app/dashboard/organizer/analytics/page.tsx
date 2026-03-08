@@ -59,24 +59,15 @@ export default function OrganizerAnalyticsPage() {
     const scores = submissions.filter(s => s.score !== undefined).map(s => s.score!);
     const avgScore = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : "N/A";
 
-    const techStackMap: Record<string, number> = {};
     const categoryMap: Record<string, number> = {};
 
     submissions.forEach(sub => {
         if (sub.mlAnalysis) {
-            sub.mlAnalysis.techStack?.forEach(tech => {
-                techStackMap[tech] = (techStackMap[tech] || 0) + 1;
-            });
             if (sub.mlAnalysis.classification) {
                 categoryMap[sub.mlAnalysis.classification] = (categoryMap[sub.mlAnalysis.classification] || 0) + 1;
             }
         }
     });
-
-    const techStackData = Object.entries(techStackMap)
-        .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 6); // Top 6
 
     const categoryData = Object.entries(categoryMap)
         .map(([name, value]) => ({ name, value }));
@@ -182,7 +173,7 @@ export default function OrganizerAnalyticsPage() {
                                 />
                             </div>
 
-                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            <div className="grid gap-6 md:grid-cols-2">
                                 {/* Bar Chart */}
                                 <div className="lg:col-span-1 border border-slate-800/80 rounded-xl overflow-hidden bg-[#0a0f1a]">
                                     <SimpleBarChart
@@ -214,25 +205,6 @@ export default function OrganizerAnalyticsPage() {
                                     </div>
                                 </div>
 
-                                {/* Tech Stack Pie */}
-                                <div className="glass-panel p-4 flex flex-col justify-center border-slate-800/80">
-                                    <p className="text-sm font-medium text-slate-100 mb-4 px-2 tracking-tight">Tech Stack Distribution</p>
-                                    <div className="h-64 w-full">
-                                        {techStackData.length > 0 ? (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie data={techStackData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value">
-                                                        {techStackData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                                                    </Pie>
-                                                    <Tooltip {...CHART_TT} />
-                                                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} />
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                        ) : (
-                                            <div className="h-full flex items-center justify-center text-xs text-slate-500">No tech stacks found.</div>
-                                        )}
-                                    </div>
-                                </div>
                             </div>
 
                             {/* Top Teams Table */}

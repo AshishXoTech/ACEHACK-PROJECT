@@ -12,10 +12,10 @@ import {
   Users,
   Gauge,
   ClipboardList,
-  Share2,
 } from "lucide-react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { RoleGuard } from "@/middleware/RoleGuard";
+import { useAuth } from "@/context/AuthContext";
 import { StatCard } from "@/components/ui/StatCard";
 import { SimpleBarChart } from "@/components/ui/SimpleBarChart";
 import {
@@ -29,13 +29,14 @@ import {
   getOrganizerAnalytics,
   publishLeaderboard,
   updateRegistrationStatus,
-  sendCredentials,
 } from "@/services/event.service";
 import { getEventSubmissions, Submission } from "@/services/submission.service";
 
 
 
 export default function OrganizerDashboardPage() {
+  const { user, loading: authLoading } = useAuth();
+  const isOrganizer = user?.role === "organizer";
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<OrganizerAnalytics | null>(null);
@@ -48,6 +49,7 @@ export default function OrganizerDashboardPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading || !isOrganizer) return;
     let isMounted = true;
     const load = async () => {
       setLoading(true);
@@ -75,9 +77,10 @@ export default function OrganizerDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [authLoading, isOrganizer]);
 
   useEffect(() => {
+    if (authLoading || !isOrganizer) return;
     if (!selectedEventId) return;
 
     let isMounted = true;
@@ -116,7 +119,7 @@ export default function OrganizerDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [selectedEventId]);
+  }, [selectedEventId, authLoading, isOrganizer]);
 
   const pendingRegistrations = useMemo(
     () => registrations.filter((r) => r.status === "pending"),
@@ -152,22 +155,6 @@ export default function OrganizerDashboardPage() {
         err?.response?.data?.message ??
         err?.message ??
         "Failed to update registration.";
-      setError(message);
-    }
-  };
-
-  const handleSendCredentials = async (teamId: string) => {
-    if (!selectedEventId) return;
-    setError(null);
-    setSuccessMessage(null);
-    try {
-      await sendCredentials(selectedEventId, teamId);
-      setSuccessMessage("Credentials sent to team members.");
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message ??
-        err?.message ??
-        "Failed to send credentials.";
       setError(message);
     }
   };
@@ -302,7 +289,7 @@ export default function OrganizerDashboardPage() {
                       Registrations & approvals
                     </p>
                     <p className="text-xs text-slate-400">
-                      Approve teams and send credentials directly from here.
+                      Approve or reject teams directly from here.
                     </p>
                   </div>
                 </div>
@@ -388,16 +375,6 @@ export default function OrganizerDashboardPage() {
                                   </button>
                                 </>
                               )}
-                              {reg.status === "approved" && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleSendCredentials(reg.id)}
-                                  className="btn-outline inline-flex items-center gap-1 px-3 py-1 text-xs"
-                                >
-                                  <Share2 className="h-3 w-3" />
-                                  Send credentials
-                                </button>
-                              )}
                             </div>
                           </td>
                         </tr>
@@ -476,7 +453,7 @@ export default function OrganizerDashboardPage() {
                 <thead>
                   <tr>
                     <th>Team</th>
-                    <th>Repo</th>
+                    <th>Project</th>
                     <th>ML classification</th>
                     <th>Tech stack</th>
                     <th>Score</th>
@@ -512,14 +489,8 @@ export default function OrganizerDashboardPage() {
                         <td className="font-medium text-slate-100">
                           {submission.teamName}
                         </td>
-                        <td className="text-xs text-cyan-300 underline">
-                          <a
-                            href={submission.repoUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            Repository
-                          </a>
+                        <td className="text-xs text-slate-200">
+                          {submission.projectName || submission.teamName}
                         </td>
                         <td className="text-xs text-slate-200">
                           {submission.mlAnalysis?.classification ?? "—"}
@@ -541,4 +512,3 @@ export default function OrganizerDashboardPage() {
     </RoleGuard>
   );
 }
-

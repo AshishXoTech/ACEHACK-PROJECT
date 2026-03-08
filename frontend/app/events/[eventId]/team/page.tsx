@@ -14,7 +14,7 @@ import {
 } from "@/services/participant-workspace.service";
 
 export default function TeamManagementPage() {
-  const { id } = useParams<{ id: string }>();
+  const { eventId } = useParams<{ eventId: string }>();
 
   const [team, setTeam] = useState<EventTeam | null>(null);
   const [teamName, setTeamName] = useState("");
@@ -26,14 +26,14 @@ export default function TeamManagementPage() {
   const loadTeam = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getTeamByEvent(id);
+      const data = await getTeamByEvent(eventId);
       setTeam(data);
     } catch {
       setToast({ ok: false, msg: "Could not load team details." });
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [eventId]);
 
   useEffect(() => {
     loadTeam();
@@ -54,7 +54,7 @@ export default function TeamManagementPage() {
         .filter(Boolean);
 
       await createWorkspaceTeam({
-        eventId: id,
+        eventId,
         name: teamName.trim(),
         members,
       });
@@ -72,7 +72,7 @@ export default function TeamManagementPage() {
   const handleLeaveTeam = async () => {
     setSubmitting(true);
     try {
-      await leaveTeam(id);
+      await leaveTeam(eventId);
       setTeam(null);
       setToast({ ok: true, msg: "You left the team." });
     } catch {
@@ -87,7 +87,7 @@ export default function TeamManagementPage() {
       <DashboardShell>
         <ToastMessage toast={toast} onClose={() => setToast(null)} />
         <EventWorkspaceLayout
-          eventId={id}
+          eventId={eventId}
           title="Team Management"
           subtitle="Create a team, invite members, and manage participation"
         >
@@ -178,3 +178,4 @@ export default function TeamManagementPage() {
     </RoleGuard>
   );
 }
+
