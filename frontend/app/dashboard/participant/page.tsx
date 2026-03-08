@@ -214,10 +214,10 @@ export default function ParticipantDashboard() {
                   <span className="text-slate-200">{r.eventName}</span>
                   <span
                     className={`text-xs font-medium border px-2 py-0.5 rounded capitalize ${
-                      STATUS_STYLE[r.status] ?? STATUS_STYLE.pending
+                      STATUS_STYLE[r.status ?? "pending"] ?? STATUS_STYLE.pending
                     }`}
                   >
-                    {r.status}
+                    {r.status ?? "pending"}
                   </span>
                 </div>
               ))}
