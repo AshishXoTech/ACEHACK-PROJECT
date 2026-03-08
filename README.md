@@ -100,22 +100,51 @@ AWS_S3_BUCKET=your_bucket_name
 
 # AI
 OPENAI_API_KEY=your_openai_key
+
 📁 Project Structure
-hackflow-ai/
-├── client/                 # Frontend application
-│   ├── components/         # Reusable UI components
-│   ├── pages/              # Route-based pages
-│   └── styles/             # Global styles
-├── server/                 # Backend application
-│   ├── controllers/        # Request handlers
-│   ├── models/             # Database models
-│   ├── routes/             # API routes
-│   ├── services/           # Business logic
-│   └── middleware/         # Auth, validation, etc.
-├── ai/                     # AI/ML modules
-├── docs/                   # Documentation
-├── tests/                  # Test suites
-└── docker-compose.yml
+ACEHACK-PROJECT/
+├── frontend/                      # Frontend application (React / Next.js UI)
+│   ├── app/                       # App router pages and route-based layouts
+│   ├── components/                # Reusable UI components (cards, tables, navbar, sidebar)
+│   ├── context/                   # Global state management (Auth, user roles, sessions)
+│   ├── middleware/                # Route guards and role-based access control
+│   ├── public/                    # Static assets (images, icons, logos)
+│   ├── services/                  # API service layer for backend communication
+│   ├── .env.local                 # Frontend environment variables
+│   └── package.json               # Frontend dependencies and scripts
+│
+├── src/                           # Backend application (Node.js / Express API)
+│   ├── config/                    # Server configuration (DB config, environment setup)
+│   ├── controllers/               # Request handlers for API endpoints
+│   ├── middleware/                # Authentication, authorization, validation middleware
+│   ├── routes/                    # Express route definitions
+│   ├── services/                  # Core business logic and integrations
+│   ├── utils/                     # Helper utilities (validation, formatting, helpers)
+│   └── server.js                  # Main backend server entry point
+│
+├── prisma/                        # Database layer using Prisma ORM
+│   ├── migrations/                # Database schema migration history
+│   ├── schema.prisma              # Prisma database schema definition
+│   ├── seed.js                    # Script to seed database with initial data
+│   └── dev.db                     # SQLite development database
+│
+├── ml-serviceace/                 # AI microservice for project analysis
+│   ├── main.py                    # FastAPI server entry point
+│   ├── github_service.py          # GitHub API integration (repo data extraction)
+│   ├── analyzer.py                # Core repository analysis engine
+│   ├── classification_service.py  # Project category classification (AI / ML / Web / etc.)
+│   ├── summary_service.py         # AI-generated project summaries
+│   ├── models.py                  # Data models for ML service
+│   ├── requirements.txt           # Python dependencies
+│   └── .env                       # ML service environment configuration
+│
+├── certificates/                  # Generated hackathon certificates storage
+│
+├── .env                           # Global backend environment variables
+├── .env.example                   # Example environment configuration template
+├── package.json                   # Root project scripts and dependencies
+└── README.md                      # Project documentation
+
 🧪 Running Tests
 # Run all tests
 npm test

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getParticipantDashboard } from "@/services/participant.service";
 import { certificateService } from "@/services/certificate.service";
 import { leaderboardService } from "@/services/leaderboard.service";
+import { alertService, AlertRecord } from "@/services/alert.service";
 import { PageSkeleton } from "@/components/ui/LoadingSkeleton";
 import { ToastMessage } from "@/components/ui/ToastMessage";
 
@@ -53,6 +54,8 @@ export default function ParticipantDashboard() {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [positionsLoading, setPositionsLoading] = useState(false);
   const [positions, setPositions] = useState<Record<string, LeaderboardPosition>>({});
+  const [alerts, setAlerts] = useState<AlertRecord[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
   const [toast, setToast] = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
@@ -90,6 +93,35 @@ export default function ParticipantDashboard() {
     };
 
     loadPositions();
+  }, [data]);
+
+  useEffect(() => {
+    const registrations = data?.registeredEvents ?? [];
+    if (!registrations.length) return;
+
+    const loadAlerts = async () => {
+      setAlertsLoading(true);
+      const uniqueEventIds = Array.from(new Set(registrations.map((r) => r.eventId)));
+      const rows = await Promise.all(
+        uniqueEventIds.map(async (eventId) => {
+          try {
+            return await alertService.getByEvent(eventId);
+          } catch {
+            return [];
+          }
+        }),
+      );
+      const merged = rows
+        .flat()
+        .sort(
+          (a, b) =>
+            new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
+        );
+      setAlerts(merged);
+      setAlertsLoading(false);
+    };
+
+    loadAlerts();
   }, [data]);
 
   const downloadCert = async (eventId: string, teamId: string) => {
@@ -274,6 +306,30 @@ export default function ParticipantDashboard() {
                     {downloading === r.eventId ? "Downloading..." : "Download certificate"}
                   </p>
                 </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-[#0f172a] border border-slate-800 rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-slate-100 mb-3">Alerts</h2>
+          {alertsLoading ? (
+            <p className="text-slate-500 text-sm">Loading alerts...</p>
+          ) : alerts.length === 0 ? (
+            <p className="text-slate-500 text-sm">No alerts available.</p>
+          ) : (
+            <div className="space-y-2 text-sm">
+              {alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className="rounded-lg border border-slate-800 px-3 py-2"
+                >
+                  <p className="font-medium text-slate-100">{alert.title}</p>
+                  <p className="text-slate-300 mt-1">{alert.message}</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {new Date(alert.scheduledAt).toLocaleString()} • {alert.createdByName || "Organizer"}
+                  </p>
+                </div>
               ))}
             </div>
           )}

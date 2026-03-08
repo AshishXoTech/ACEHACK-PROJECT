@@ -13,6 +13,7 @@ export default function SponsorRegisterPage() {
     companyName: "",
     industry: "",
     website: "",
+    linkedinCompanyPage: "",
     technologies: [],
     sponsorshipType: "",
     sponsorshipCriteria: "",
@@ -22,6 +23,18 @@ export default function SponsorRegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const resolveErrorMessage = (err: unknown) => {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "response" in err &&
+      typeof (err as { response?: { data?: { message?: string } } }).response?.data?.message === "string"
+    ) {
+      return (err as { response?: { data?: { message?: string } } }).response!.data!.message!;
+    }
+    return "Could not submit sponsor details.";
+  };
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,19 +53,20 @@ export default function SponsorRegisterPage() {
         technologies,
       });
 
-      setSuccess("Sponsor profile submitted successfully.");
+      setSuccess("Sponsor profile submitted. Verify your email, then wait for admin approval.");
       setForm({
         companyName: "",
         industry: "",
         website: "",
+        linkedinCompanyPage: "",
         technologies: [],
         sponsorshipType: "",
         sponsorshipCriteria: "",
         contactEmail: "",
       });
       setTechnologyInput("");
-    } catch {
-      setError("Could not submit sponsor details.");
+    } catch (err: unknown) {
+      setError(resolveErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -104,6 +118,14 @@ export default function SponsorRegisterPage() {
             placeholder="Website"
             value={form.website}
             onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))}
+            required
+          />
+          <input
+            type="url"
+            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+            placeholder="LinkedIn Company Page (https://linkedin.com/company/...)"
+            value={form.linkedinCompanyPage}
+            onChange={(e) => setForm((p) => ({ ...p, linkedinCompanyPage: e.target.value }))}
             required
           />
           <input

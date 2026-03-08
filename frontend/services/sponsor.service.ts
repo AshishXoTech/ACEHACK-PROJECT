@@ -5,16 +5,28 @@ export interface Sponsor {
   companyName: string;
   industry: string;
   website: string;
+  companyWebsite?: string;
+  domain?: string | null;
+  linkedinCompanyPage?: string | null;
   technologies: string[];
   sponsorshipType: string;
   sponsorshipCriteria: string;
   contactEmail: string;
+  verificationStatus?: string;
+  emailVerified?: boolean;
+  domainVerified?: boolean;
+  websiteVerified?: boolean;
+  linkedinVerified?: boolean;
+  status?: "pending" | "approved" | "rejected" | string;
+  createdAt?: string;
 }
 
 export interface SponsorRegistrationPayload {
   companyName: string;
   industry: string;
   website: string;
+  companyWebsite?: string;
+  linkedinCompanyPage: string;
   technologies: string[];
   sponsorshipType: string;
   sponsorshipCriteria: string;
@@ -30,5 +42,18 @@ export async function registerSponsor(
   payload: SponsorRegistrationPayload,
 ): Promise<Sponsor> {
   const { data } = await api.post<Sponsor>("/sponsors/register", payload);
+  return data;
+}
+
+export async function getSponsorAdminList(): Promise<Sponsor[]> {
+  const { data } = await api.get<Sponsor[]>("/sponsors/admin/list");
+  return data || [];
+}
+
+export async function updateSponsorAdminStatus(
+  sponsorId: string,
+  action: "approve" | "reject" | "request_verification",
+): Promise<Sponsor> {
+  const { data } = await api.post<Sponsor>(`/sponsors/admin/${sponsorId}/status`, { action });
   return data;
 }

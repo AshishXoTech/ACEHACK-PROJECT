@@ -9,5 +9,7 @@ router.post('/register', (req, res, next) => {
 }, authController.register);
 
 router.post('/login', authController.login);
+router.get('/verify-email', authController.verifyEmail);
+router.post('/verify-email', authController.verifyEmail);
 
 module.exports = router;
