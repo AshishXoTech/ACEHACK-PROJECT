@@ -44,6 +44,13 @@ export default function Navbar() {
               Why HackFlow
             </Link>
 
+            <Link
+              href="/sponsors"
+              className="hover:text-slate-200 transition"
+            >
+              Sponsors
+            </Link>
+
           </nav>
 
           {/* ACTION BUTTONS */}
@@ -57,13 +64,15 @@ export default function Navbar() {
               Login
             </Link>
 
-            <motion.button
+            <motion.div
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="bg-cyan-500 hover:bg-cyan-400 text-black text-sm font-medium px-4 py-2 rounded-lg transition"
             >
-              Create Hackathon
-            </motion.button>
+              <Link href="/dashboard/organizer/create-event">
+                Create Hackathon
+              </Link>
+            </motion.div>
 
           </div>
 

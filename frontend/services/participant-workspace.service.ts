@@ -63,7 +63,15 @@ export async function createWorkspaceTeam(payload: CreateWorkspaceTeamPayload): 
 }
 
 export async function submitWorkspaceProject(payload: WorkspaceSubmissionPayload): Promise<void> {
-  await api.post("/submissions", payload);
+  await api.post("/submissions", {
+    eventId: payload.eventId,
+    projectName: payload.projectName,
+    repoUrl: payload.repo,
+    demoUrl: payload.demo,
+    description: payload.description,
+    repo: payload.repo,
+    demo: payload.demo,
+  });
 }
 
 export async function getEventResources(eventId: string): Promise<EventResources> {

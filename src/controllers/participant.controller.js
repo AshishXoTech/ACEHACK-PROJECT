@@ -102,29 +102,29 @@ exports.submitProject = async (req, res) => {
     let complexity = null;
     let classification = null;
     let usabilityScore = null;
+    let commitTotal = null;
+    let commitLast7Days = null;
+    let commitLast30Days = null;
 
     try {
+      const analysisResult = await mlService.analyzeRepository(repoLink);
 
-      // 1️⃣ Generate Summary
-      const summaryResult = await mlService.generateSummary(repoLink);
-
-      summary = summaryResult.summary || null;
-
-
-      // 2️⃣ Classify Project
-      const classificationResult =
-        await mlService.classifyProject(repoLink);
-
-      classification = classificationResult.category || null;
-
-
-      // 3️⃣ Analyze Tech Stack
-      const stackResult =
-        await mlService.analyzeStack(repoLink);
-
-      techStack = stackResult.tech_stack || null;
-      complexity = stackResult.complexity || null;
-      usabilityScore = stackResult.usability_score || null;
+      summary = analysisResult.summary || null;
+      classification = analysisResult.category || null;
+      techStack = Array.isArray(analysisResult.techStack)
+        ? analysisResult.techStack.join(', ')
+        : null;
+      complexity = null;
+      usabilityScore = null;
+      commitTotal = Number.isFinite(Number(analysisResult.commitStats?.total))
+        ? Number(analysisResult.commitStats.total)
+        : null;
+      commitLast7Days = Number.isFinite(Number(analysisResult.commitStats?.last7Days))
+        ? Number(analysisResult.commitStats.last7Days)
+        : null;
+      commitLast30Days = Number.isFinite(Number(analysisResult.commitStats?.last30Days))
+        ? Number(analysisResult.commitStats.last30Days)
+        : null;
 
     } catch (mlError) {
 
@@ -154,6 +154,10 @@ exports.submitProject = async (req, res) => {
           complexity,
           classification,
           usabilityScore,
+          commitTotal,
+          commitLast7Days,
+          commitLast30Days,
+          analyzedAt: new Date(),
           status: "submitted"
         }
       });
@@ -185,6 +189,10 @@ exports.submitProject = async (req, res) => {
         complexity,
         classification,
         usabilityScore,
+        commitTotal,
+        commitLast7Days,
+        commitLast30Days,
+        analyzedAt: new Date(),
         status: "submitted"
 
       }

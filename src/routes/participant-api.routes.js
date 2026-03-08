@@ -36,6 +36,38 @@ router.get('/events', authMiddleware, async (req, res) => {
 });
 
 /**
+ * GET /api/participant/my-events
+ * Compatibility alias for frontend My Hackathons page
+ */
+router.get('/my-events', authMiddleware, async (req, res) => {
+    try {
+        const registrations = await prisma.registration.findMany({
+            where: { userId: req.user.id },
+            include: {
+                team: {
+                    include: {
+                        event: true,
+                    }
+                }
+            }
+        });
+
+        const events = registrations.map((reg) => ({
+            eventId: String(reg.team.eventId),
+            name: reg.team.event.name,
+            startDate: reg.team.event.startDate ? reg.team.event.startDate.toISOString() : null,
+            status: reg.team.status || "pending",
+            teamName: reg.team.name,
+        }));
+
+        res.json(events);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+/**
  * GET /api/participant/dashboard
  */
 router.get('/dashboard', authMiddleware, async (req, res) => {
@@ -72,7 +104,7 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
             status: reg.team.status, // Using team status as registration status
             teamId: String(reg.team.id),
             teamName: reg.team.name,
-            members: [], // Will be filled by team members query
+            members: [],
             submissionId: reg.team.submission ? String(reg.team.submission.id) : null
         }));
 
@@ -88,6 +120,88 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
             user,
             registrations: formattedRegistrations,
             hasCertificates
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+/**
+ * GET /api/participant/me
+ * Normalized participant dashboard payload
+ */
+router.get('/me', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, name: true, email: true }
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const registrations = await prisma.registration.findMany({
+            where: { userId },
+            include: {
+                team: {
+                    include: {
+                        event: true,
+                        submission: true,
+                        registrations: {
+                            include: {
+                                user: { select: { name: true } }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const registeredEvents = registrations.map((reg) => ({
+            eventId: String(reg.team.eventId),
+            eventName: reg.team.event.name,
+            status: reg.team.status || 'pending',
+            teamId: String(reg.team.id),
+            teamName: reg.team.name,
+            members: reg.team.registrations.map((memberReg) => memberReg.user.name),
+            submissionId: reg.team.submission ? String(reg.team.submission.id) : null,
+        }));
+
+        const certificates = await prisma.certificate.findMany({
+            where: { userId },
+            select: { eventId: true }
+        });
+        const hasCertificates = certificates.map((c) => String(c.eventId));
+
+        const leaderboardEntries = await prisma.leaderboardEntry.findMany({
+            where: { teamId: { in: registrations.map((reg) => reg.team.id) } },
+            orderBy: { rank: 'asc' },
+            select: { rank: true }
+        });
+
+        res.json({
+            user: {
+                id: String(user.id),
+                name: user.name,
+                email: user.email,
+            },
+            approvedEvents: registeredEvents.filter((event) => event.status === 'approved').length,
+            submissions: registeredEvents.filter((event) => Boolean(event.submissionId)).length,
+            certificates: hasCertificates.length,
+            registeredEvents,
+            teamMembers: registeredEvents.map((event) => ({
+                eventId: event.eventId,
+                eventName: event.eventName,
+                teamId: event.teamId,
+                teamName: event.teamName,
+                members: event.members,
+            })),
+            leaderboardPosition: leaderboardEntries.length ? leaderboardEntries[0].rank : null,
+            hasCertificates,
         });
     } catch (error) {
         console.error(error);
@@ -126,13 +240,21 @@ router.get('/events/:eventId/submission', authMiddleware, async (req, res) => {
             demoUrl: sub.profileLink || undefined,
             summary: sub.summary || '',
             status: sub.status,
-            score: team.scores.length > 0 ? team.scores[0].finalScore : undefined,
+            score: team.scores.length > 0
+                ? team.scores.reduce((sum, s) => sum + s.totalScore, 0)
+                : undefined,
             mlAnalysis: sub.summary ? {
                 summary: sub.summary || '',
+                category: sub.classification || '',
                 classification: sub.classification || '',
                 techStack: sub.techStack ? sub.techStack.split(',').map(s => s.trim()) : [],
                 complexity: sub.complexity || '',
                 usabilityScore: sub.usabilityScore || 0,
+                commitStats: {
+                    total: sub.commitTotal || 0,
+                    last7Days: sub.commitLast7Days || 0,
+                    last30Days: sub.commitLast30Days || 0,
+                },
             } : undefined,
         });
     } catch (error) {
@@ -157,7 +279,7 @@ router.get('/events/:eventId/stats', authMiddleware, async (req, res) => {
         });
 
         const submissions = teams.filter(t => t.submission);
-        const allScores = teams.flatMap(t => t.scores.map(s => s.finalScore));
+        const allScores = teams.flatMap(t => t.scores.map(s => s.totalScore));
         const avgScore = allScores.length
             ? allScores.reduce((a, b) => a + b, 0) / allScores.length
             : undefined;

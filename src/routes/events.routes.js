@@ -9,7 +9,12 @@ const authMiddleware = require('../middleware/auth.middleware');
  */
 router.get('/', authMiddleware, async (req, res) => {
     try {
+        const where = req.user?.role === 'organizer'
+            ? { organizerId: req.user.id }
+            : {};
+
         const events = await prisma.event.findMany({
+            where,
             orderBy: { startDate: 'desc' }
         });
 
@@ -17,6 +22,7 @@ router.get('/', authMiddleware, async (req, res) => {
             id: String(e.id),
             title: e.name,
             description: e.description,
+            organizerId: String(e.organizerId),
             location: e.location || '',
             startDate: e.startDate ? e.startDate.toISOString() : '',
             endDate: e.endDate ? e.endDate.toISOString() : '',
@@ -67,7 +73,7 @@ router.get('/:eventId/leaderboard', async (req, res) => {
             .map(t => ({
                 teamId: String(t.id),
                 teamName: t.name,
-                score: t.scores.reduce((sum, s) => sum + s.finalScore, 0)
+                score: t.scores.reduce((sum, s) => sum + s.totalScore, 0)
             }))
             .sort((a, b) => b.score - a.score)
             .map((entry, index) => ({
@@ -416,7 +422,7 @@ router.get('/:eventId/analytics', authMiddleware, async (req, res) => {
             .map(t => ({
                 teamId: String(t.id),
                 teamName: t.name,
-                score: t.scores.reduce((sum, s) => sum + s.finalScore, 0)
+                score: t.scores.reduce((sum, s) => sum + s.totalScore, 0)
             }))
             .filter(t => t.score > 0)
             .sort((a, b) => b.score - a.score)
@@ -449,17 +455,28 @@ router.get('/:eventId/submissions', authMiddleware, async (req, res) => {
                     id: String(sub.id),
                     teamId: String(t.id),
                     teamName: t.name,
+                    projectName: sub.summary
+                        ? sub.summary.split('\n')[0].slice(0, 60)
+                        : `${t.name} Project`,
                     repoUrl: sub.repoLink,
                     demoUrl: sub.profileLink || undefined,
                     summary: sub.summary || '',
                     status: sub.status,
-                    score: t.scores.length > 0 ? t.scores[0].finalScore : undefined,
+                    score: t.scores.length > 0
+                        ? t.scores.reduce((sum, s) => sum + s.totalScore, 0)
+                        : undefined,
                     mlAnalysis: sub.summary ? {
                         summary: sub.summary || '',
+                        category: sub.classification || '',
                         classification: sub.classification || '',
                         techStack: sub.techStack ? sub.techStack.split(',').map(s => s.trim()) : [],
                         complexity: sub.complexity || '',
                         usabilityScore: sub.usabilityScore || 0,
+                        commitStats: {
+                            total: sub.commitTotal || 0,
+                            last7Days: sub.commitLast7Days || 0,
+                            last30Days: sub.commitLast30Days || 0,
+                        },
                     } : undefined,
                 };
             });

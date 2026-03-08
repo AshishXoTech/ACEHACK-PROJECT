@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getParticipantDashboardData } from "@/services/participant.service";
+import { getParticipantDashboard } from "@/services/participant.service";
 import { certificateService } from "@/services/certificate.service";
 import { leaderboardService } from "@/services/leaderboard.service";
 import { PageSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -20,7 +20,18 @@ interface Registration {
 
 interface ParticipantData {
   user?: { id: string; name: string; email: string };
-  registrations: Registration[];
+  approvedEvents: number;
+  submissions: number;
+  certificates: number;
+  registeredEvents: Registration[];
+  teamMembers: {
+    eventId: string;
+    eventName: string;
+    teamId: string;
+    teamName: string;
+    members: string[];
+  }[];
+  leaderboardPosition: number | null;
   hasCertificates: string[];
 }
 
@@ -45,14 +56,14 @@ export default function ParticipantDashboard() {
   const [toast, setToast] = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
-    getParticipantDashboardData()
+    getParticipantDashboard()
       .then((dashboardData) => setData(dashboardData))
       .catch(() => setError("Could not load dashboard data."))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    const registrations = data?.registrations ?? [];
+    const registrations = data?.registeredEvents ?? [];
     if (registrations.length === 0) return;
 
     const loadPositions = async () => {
@@ -99,7 +110,8 @@ export default function ParticipantDashboard() {
     }
   };
 
-  const registrations = data?.registrations ?? [];
+  const registrations = data?.registeredEvents ?? [];
+  const teamMembers = data?.teamMembers ?? [];
   const downloadableCertificates = registrations.filter((r) =>
     data?.hasCertificates.includes(r.eventId),
   );
@@ -109,6 +121,7 @@ export default function ParticipantDashboard() {
     if (!pos) return "Not available";
     if (!pos.published) return "Not published";
     if (pos.rank) return `#${pos.rank}`;
+    if (typeof data?.leaderboardPosition === "number") return `#${data.leaderboardPosition}`;
     return "Not ranked";
   };
 
@@ -138,13 +151,13 @@ export default function ParticipantDashboard() {
           {[
             {
               label: "Approved",
-              value: registrations.filter((r) => r.status === "approved").length,
+              value: data?.approvedEvents ?? 0,
             },
             {
               label: "Submissions",
-              value: registrations.filter((r) => r.submissionId).length,
+              value: data?.submissions ?? 0,
             },
-            { label: "Certificates", value: data?.hasCertificates.length ?? 0 },
+            { label: "Certificates", value: data?.certificates ?? 0 },
           ].map((s) => (
             <div
               key={s.label}
@@ -182,8 +195,8 @@ export default function ParticipantDashboard() {
           <div className="bg-[#0f172a] border border-slate-800 rounded-xl p-6">
             <h2 className="text-sm font-semibold text-slate-100 mb-3">Team Members</h2>
             <div className="space-y-2 text-sm">
-              {registrations.length === 0 && <p className="text-slate-500">No team data available.</p>}
-              {registrations.map((r, index) => (
+              {teamMembers.length === 0 && <p className="text-slate-500">No team data available.</p>}
+              {teamMembers.map((r, index) => (
                 <div
                   key={registrationKey(r, index, "members")}
                   className="rounded-lg border border-slate-800 px-3 py-2"
@@ -212,10 +225,10 @@ export default function ParticipantDashboard() {
                       href={`/events/${r.eventId}/submissions/${r.submissionId}`}
                       className="text-xs text-cyan-400 hover:underline"
                     >
-                      Submitted
+                      Repo submitted
                     </Link>
                   ) : (
-                    <span className="text-xs text-slate-500">Pending</span>
+                    <span className="text-xs text-slate-500">No submissions yet</span>
                   )}
                 </div>
               ))}

@@ -29,7 +29,7 @@ exports.generateCertificates = async (req, res) => {
 
     const leaderboard = teams.map(team => {
       const totalScore = team.scores.reduce(
-        (sum, score) => sum + score.finalScore,
+        (sum, score) => sum + score.totalScore,
         0
       );
 
@@ -276,7 +276,7 @@ exports.generateLeaderboard = async (req, res) => {
 
     const leaderboard = teams.map(team => {
       const totalScore = team.scores.reduce(
-        (sum, score) => sum + score.finalScore,
+        (sum, score) => sum + score.totalScore,
         0
       );
 

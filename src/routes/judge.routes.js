@@ -16,6 +16,30 @@ router.get(
   judgeController.getAssignedTeams
 );
 
+router.get(
+  '/assignments/:eventId',
+  authMiddleware,
+  roleMiddleware('organizer'),
+  judgeController.getAssignmentsForEvent
+);
+
+router.post(
+  '/assign',
+  authMiddleware,
+  roleMiddleware('organizer'),
+  judgeController.assignJudgeToTeam
+);
+
+// =========================
+// GET TEAM SUBMISSION DETAILS
+// =========================
+router.get(
+  '/submission/:teamId',
+  authMiddleware,
+  roleMiddleware('judge'),
+  judgeController.getSubmissionByTeam
+);
+
 
 // =========================
 // SUBMIT SCORE

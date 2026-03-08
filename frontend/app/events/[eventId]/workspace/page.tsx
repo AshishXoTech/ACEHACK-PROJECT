@@ -10,7 +10,7 @@ import { Event, getEventById } from "@/services/event.service";
 import { getParticipantDashboardData } from "@/services/participant.service";
 
 export default function EventWorkspaceOverviewPage() {
-  const { id } = useParams<{ id: string }>();
+  const { eventId } = useParams<{ eventId: string }>();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [teamStatus, setTeamStatus] = useState("Not registered");
@@ -19,16 +19,16 @@ export default function EventWorkspaceOverviewPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([getEventById(id), getParticipantDashboardData()])
+    Promise.all([getEventById(eventId), getParticipantDashboardData()])
       .then(([eventData, participant]) => {
         setEvent(eventData);
-        const registration = participant.registrations.find((r) => r.eventId === id);
+        const registration = participant.registrations.find((r) => r.eventId === eventId);
         setTeamStatus(registration?.status ?? "Not registered");
         setSubmissionStatus(registration?.submissionId ? "Submitted" : "Pending");
       })
       .catch(() => setError("Could not load event workspace data."))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [eventId]);
 
   const tracks = useMemo(() => event?.tracks ?? [], [event?.tracks]);
 
@@ -46,7 +46,7 @@ export default function EventWorkspaceOverviewPage() {
     <RoleGuard allowedRoles={["participant"]}>
       <DashboardShell>
         <EventWorkspaceLayout
-          eventId={id}
+          eventId={eventId}
           title={event?.title ?? "Event Workspace"}
           subtitle="Overview"
         >
@@ -95,3 +95,4 @@ export default function EventWorkspaceOverviewPage() {
     </RoleGuard>
   );
 }
+
