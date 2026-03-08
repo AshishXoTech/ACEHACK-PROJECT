@@ -28,7 +28,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
-app.options('*', cors());
+app.options(cors());
 app.use(express.json());
 
 app.use('/certificates', express.static(path.join(__dirname, '../certificates')));
