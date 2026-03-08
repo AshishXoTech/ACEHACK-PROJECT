@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import {
   Award,
   BarChart3,
+  Bell,
   CalendarPlus,
   GitBranch,
   LayoutDashboard,
@@ -69,6 +70,12 @@ const navItems: NavItem[] = [
     href: "/dashboard/organizer/certificates",
     label: "Certificates",
     icon: Award,
+    roles: ["organizer"],
+  },
+  {
+    href: "/dashboard/organizer/alerts",
+    label: "Alerts",
+    icon: Bell,
     roles: ["organizer"],
   },
   {

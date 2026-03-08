@@ -16,6 +16,8 @@ const leaderboardRoutes = require('./routes/leaderboard.routes');
 const participantApiRoutes = require('./routes/participant-api.routes');
 const sponsorsRoutes = require('./routes/sponsors.routes');
 const aiRoutes = require('./routes/ai.routes');
+const alertRoutes = require('./routes/alert.routes');
+const { startAlertScheduler } = require('./services/alertScheduler');
 
 const app = express();
 
@@ -43,8 +45,10 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/participant', participantApiRoutes);
 app.use('/api/sponsors', sponsorsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/alerts', alertRoutes);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  startAlertScheduler();
 });

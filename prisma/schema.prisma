@@ -39,6 +39,7 @@ model Event {
   teams       Team[]
   certificates Certificate[]
   leaderboardEntries LeaderboardEntry[]
+  alerts      Alert[]
 }
 
 model Team {
@@ -159,9 +160,43 @@ model Sponsor {
   companyName         String
   industry            String
   website             String
+  companyWebsite      String?
+  domain              String?
+  linkedinCompanyPage String?
   technologies        String
   sponsorshipType     String
   sponsorshipCriteria String
   contactEmail        String
+  verificationStatus  String   @default("pending")
+  emailVerified       Boolean  @default(false)
+  domainVerified      Boolean  @default(false)
+  websiteVerified     Boolean  @default(false)
+  linkedinVerified    Boolean  @default(false)
+  status              String   @default("pending")
+  verificationToken   String?
+  verificationExpires DateTime?
   createdAt           DateTime @default(now())
+}
+
+model VerifiedCompanyDomain {
+  id        Int      @id @default(autoincrement())
+  domain    String   @unique
+  autoApprove Boolean @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Alert {
+  id          String   @id @default(uuid())
+  eventId     Int
+  title       String
+  message     String
+  createdBy   Int
+  scheduledAt DateTime
+  isInstant   Boolean
+  delivered   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id])
+
+  @@index([scheduledAt])
 }
