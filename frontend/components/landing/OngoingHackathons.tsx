@@ -34,6 +34,7 @@ export default function OngoingHackathons() {
   return (
     <Section
       id="hackathons"
+      className="py-12"
       title="Ongoing Hackathons"
       description="Join live hackathons happening right now and compete with developers around the world."
     >
