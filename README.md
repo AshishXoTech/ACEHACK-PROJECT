@@ -1,218 +1,264 @@
-# 🚀 HackFlow AI
+# Devora (ACEHACK Project)
 
-> A centralized platform that streamlines hackathon management, simplifies the judging workflow, and enhances the experience for organizers, judges, and participants.
+Devora is a full-stack hackathon management platform for organizers, judges, and participants. It centralizes event operations, submission review, AI-assisted repository analysis, scoring, and leaderboard publishing.
 
----
+## Problem Statement
 
-## 📌 Problem Statement
+Hackathon operations are often spread across forms, sheets, chats, and manual review workflows. This causes:
 
-Hackathons are one of the most powerful platforms for innovation — but organizing and managing them remains highly manual, fragmented, and inefficient.
+- Organizer overhead in registrations, assignments, and publishing results
+- Judge friction while reviewing repos, demos, and documentation
+- Participant uncertainty around submission status, scoring, and certificates
 
-**Organizers** juggle multiple disconnected tools (Google Forms, spreadsheets, email, messaging apps) to handle registrations, submissions, judge assignments, and scoring — leading to heavy administrative overhead and poor coordination.
+Devora solves this with one integrated platform and role-based dashboards.
 
-**Judges** face challenges during evaluation, with project repositories, demo videos, and documentation scattered across different links, making fair and consistent scoring difficult.
+## Core Features
 
-**Participants** lack transparency in the submission and judging process, with no clear visibility into their evaluation status or easy access to results and certificates.
+### Organizer
+- Event creation and lifecycle management
+- Team registration and approval flow
+- Judge-to-team assignment
+- Submission monitoring and analytics
+- Leaderboard publish controls and certificate workflows
 
-HackFlow AI addresses all of these pain points through a single, intelligent platform.
+### Judge
+- Assigned teams view with submission context
+- Submission details page (repo, demo, description, members)
+- 4-criteria scoring (0-10 each): Innovation, Technical, Design/Presentation, Impact
+- AI analysis panel for repository insights
+- Real-time leaderboard visibility
 
----
+### Participant
+- My Hackathons listing
+- Event workspace flow (team, submission, resources, certificates)
+- Team creation/invite flow
+- Project submission with repo + demo + description
+- Dashboard stats for registered events/submissions/certificates
 
-## ✨ Features
+## AI Repository Analysis
 
-### For Organizers
-- 📋 Centralized registration and team management
-- 📁 Unified project submission tracking
-- ⚖️ Automated judge assignment and workload balancing
-- 📊 Real-time event progress dashboard
-- 🏆 Certificate generation and results publishing
+Submission repo URLs are analyzed using a Python ML microservice.
 
-### For Judges
-- 🗂️ Structured evaluation dashboard with all project assets in one place
-- 📝 Consistent, rubric-based scoring system
-- 🔄 Easy project comparison and review workflow
-- 📈 Scoring analytics and progress tracking
+Outputs include:
+- Project summary
+- Category classification
+- Tech stack detection
+- Commit insights (including frequency and activity patterns)
 
-### For Participants
-- 📤 Simple, guided project submission flow
-- 🔍 Real-time visibility into evaluation status
-- 🎓 Automated certificate access upon results
-- 🔔 Event updates and notifications
+The backend caches analysis in submission fields to avoid repeated expensive calls.
 
----
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
-|-------|------------|
-| Frontend | React.js / Next.js |
-| Backend | Node.js / Express |
-| Database | PostgreSQL / MongoDB |
-| Auth | OAuth 2.0 / JWT |
-| AI/ML | OpenAI API / Custom Models |
-| Storage | AWS S3 / Cloudinary |
-| Deployment | Docker / Vercel / AWS |
+|---|---|
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind |
+| Backend | Node.js, Express |
+| Database | SQLite + Prisma ORM |
+| Auth | JWT |
+| AI/ML | Python FastAPI + OpenAI SDK + GitHub API |
 
-> ⚠️ *Tech stack is subject to change based on development decisions.*
+## Repository Structure
 
----
-
-## 🏗️ Architecture Overview
-
+```text
+ACEHACK-PROJECT/
+├── certificates/             # Certificate storage
+├── frontend/                 # Next.js app (App Router)
+│   ├── app/
+│   │   ├── dashboard/
+│   │   │   ├── judge/
+│   │   │   ├── organizer/
+│   │   │   └── participant/
+│   │   ├── events/
+│   │   │   ├── page.tsx
+│   │   │   └── [id]/
+│   │   ├── leaderboard/
+│   │   │   ├── page.tsx
+│   │   │   └── [eventId]/
+│   │   ├── login/
+│   │   │   └── page.tsx
+│   │   ├── my-hackathons/
+│   │   │   └── page.tsx
+│   │   ├── register/
+│   │   │   └── page.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components/
+│   │   ├── ai/
+│   │   │   ├── AIAnalysisCard.tsx
+│   │   │   ├── AIAnalysisChart.tsx
+│   │   │   └── TechStackTags.tsx
+│   │   ├── analytics/
+│   │   │   ├── AnalyticsCard.tsx
+│   │   │   └── TopTeams.tsx
+│   │   ├── events/
+│   │   │   ├── EventCard.tsx
+│   │   │   └── EventGrid.tsx
+│   │   ├── forms/
+│   │   │   └── CreateEventForm.tsx
+│   │   ├── landing/
+│   │   │   ├── CTA.tsx
+│   │   │   ├── Features.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Hero.tsx
+│   │   │   ├── OngoingHackathons.tsx
+│   │   │   ├── Section.tsx
+│   │   │   ├── SocialProof.tsx
+│   │   │   ├── UpcomingHackathons.tsx
+│   │   │   └── WhyHackflow.tsx
+│   │   ├── layout/
+│   │   │   └── DashboardShell.tsx
+│   │   ├── registrations/
+│   │   ├── submissions/
+│   │   ├── ui/
+│   │   └── workspace/
+│   ├── context/
+│   │   └── AuthContext.tsx
+│   ├── middleware/
+│   │   └── RoleGuard.tsx
+│   ├── public/
+│   ├── services/
+│   │   ├── api.ts
+│   │   ├── auth.service.ts
+│   │   ├── certificate.service.ts
+│   │   ├── event.service.ts
+│   │   ├── judge.service.ts
+│   │   ├── leaderboard.service.ts
+│   │   ├── organizer.service.ts
+│   │   ├── participant-workspace.service.ts
+│   │   ├── participant.service.ts
+│   │   ├── registration.service.ts
+│   │   └── submission.service.ts
+│   ├── build-zip.js
+│   ├── eslint.config.mjs
+│   ├── next-env.d.ts
+│   ├── next.config.ts
+│   ├── package.json
+│   ├── postcss.config.mjs
+│   ├── README.md
+│   └── tsconfig.json
+├── ml-serviceace/            # FastAPI ML microservice
+│   ├── analyzer.py
+│   ├── classification_service.py
+│   ├── github_service.py
+│   ├── main.py
+│   ├── models.py
+│   ├── requirements.txt
+│   ├── summary_service.py
+│   └── __pycache__/
+├── prisma/                   # Database schema and migrations
+│   ├── schema.prisma
+│   ├── seed.js
+│   └── migrations/
+│       ├── migration_lock.toml
+│       ├── 20260303065159_init/
+│       └── 20260305191006_add_ml_fields/
+├── src/                      # Node/Express backend
+│   ├── server.js
+│   ├── config/
+│   │   └── prisma.js
+│   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   ├── judge.controller.js
+│   │   ├── organizer.controller.js
+│   │   └── participant.controller.js
+│   ├── middleware/
+│   │   ├── auth.middleware.js
+│   │   └── role.middleware.js
+│   ├── routes/
+│   │   ├── auth.routes.js
+│   │   ├── events.routes.js
+│   │   ├── judge.routes.js
+│   │   ├── leaderboard.routes.js
+│   │   ├── organizer.routes.js
+│   │   ├── participant-api.routes.js
+│   │   ├── participant.routes.js
+│   │   ├── submissions.routes.js
+│   │   └── teams.routes.js
+│   ├── services/
+│   │   ├── certificate.service.js
+│   │   ├── leaderboard.service.js
+│   │   └── ml.service.js
+│   └── utils/
+│       └── pdfGenerator.js
+├── .env
+├── .env.example
+├── .gitignore
+├── package.json              # Backend dependencies/scripts
+└── README.md
 ```
-┌─────────────────────────────────────────────────┐
-│                   HackFlow AI                   │
-├───────────────┬─────────────────┬───────────────┤
-│   Organizer   │     Judge       │  Participant  │
-│   Dashboard   │   Dashboard     │   Dashboard   │
-├───────────────┴─────────────────┴───────────────┤
-│              Core Application Layer             │
-│  Registration │ Submissions │ Scoring │ Certs   │
-├─────────────────────────────────────────────────┤
-│               AI / Automation Layer             │
-│  Judge Assignment │ Scoring Insights │ Notifs  │
-├─────────────────────────────────────────────────┤
-│                  Data Layer                     │
-│          Database │ File Storage │ Cache        │
-└─────────────────────────────────────────────────┘
-```
 
----
+## Local Setup
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js >= 18.x
-- npm or yarn
-- PostgreSQL (or Docker)
-
-### Installation
+## 1) Backend (Node/Express)
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/hackflow-ai.git
-cd hackflow-ai
-
-# Install dependencies
 npm install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
-# Run database migrations
-npm run db:migrate
-
-# Start the development server
-npm run dev
+cp .env.example .env   # if .env.example is available
+npm run dev            # runs backend on PORT (default 5001)
 ```
 
-The app will be available at `http://localhost:3000`.
+## 2) Frontend (Next.js)
 
----
+```bash
+cd frontend
+npm install
+# create/update frontend/.env.local with API base URL
+npm run dev            # default http://localhost:3000
+```
 
-## ⚙️ Environment Variables
+Typical frontend env:
 
 ```env
-# App
-PORT=3000
-NODE_ENV=development
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5001/api
+```
 
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/hackflow
+## 3) Database (Prisma + SQLite)
 
-# Auth
-JWT_SECRET=your_jwt_secret
-OAUTH_CLIENT_ID=your_oauth_client_id
-OAUTH_CLIENT_SECRET=your_oauth_client_secret
+```bash
+npx prisma generate
+npx prisma db push
+# optional
+node prisma/seed.js
+```
 
-# Storage
-AWS_ACCESS_KEY_ID=your_aws_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret
-AWS_S3_BUCKET=your_bucket_name
+Note: This repo has had provider-history mismatch issues in some environments. If `migrate deploy` fails with provider mismatch, use `prisma db push` for local setup.
 
-# AI
+## 4) ML Service (FastAPI)
+
+```bash
+cd ml-serviceace
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
+python3 -m uvicorn main:app --reload --port 8001
+```
+
+ML service env (`ml-serviceace/.env`):
+
+```env
 OPENAI_API_KEY=your_openai_key
 ```
 
----
+Optional backend env for ML URL:
 
-## 📁 Project Structure
-
-```
-hackflow-ai/
-├── client/                 # Frontend application
-│   ├── components/         # Reusable UI components
-│   ├── pages/              # Route-based pages
-│   └── styles/             # Global styles
-├── server/                 # Backend application
-│   ├── controllers/        # Request handlers
-│   ├── models/             # Database models
-│   ├── routes/             # API routes
-│   ├── services/           # Business logic
-│   └── middleware/         # Auth, validation, etc.
-├── ai/                     # AI/ML modules
-├── docs/                   # Documentation
-├── tests/                  # Test suites
-└── docker-compose.yml
+```env
+ML_SERVICE_URL=http://localhost:8001
 ```
 
----
+## Key API Groups
 
-## 🧪 Running Tests
+- Auth: `/api/auth/*`
+- Organizer: `/api/organizer/*`
+- Participant: `/api/participant/*`
+- Judge: `/api/judge/*`
+- Events: `/api/events/*`
+- Teams: `/api/teams/*`
+- Submissions: `/api/submissions/*`
+- Leaderboard: `/api/leaderboard/*`
+- AI analysis: `/api/ai/repo-analysis/:teamId`
 
-```bash
-# Run all tests
-npm test
+## Team
 
-# Run with coverage
-npm run test:coverage
-
-# Run specific test suite
-npm run test:unit
-npm run test:integration
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m 'Add your feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for our code of conduct and contribution guidelines.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👥 Team
-
-Built with ❤️ at [Hackathon Name] by [Your Team Name].
-
-| Name | Role | GitHub |
-|------|------|--------|
-| — | Full Stack | — |
-| — | Backend | — |
-| — | Frontend | — |
-| — | AI/ML | — |
-
----
-
-## 📬 Contact
-
-For questions or feedback, reach out at **your-email@example.com** or open an issue on GitHub.
-
----
-
-<p align="center">Made with ❤️ by the HackFlow AI Team</p>
+Built by Hack Shastra for ACEHACK.
