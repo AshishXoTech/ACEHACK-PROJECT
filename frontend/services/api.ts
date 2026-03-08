@@ -1,7 +1,20 @@
 import axios, { AxiosError, AxiosInstance } from "axios";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5001/api";
+const resolveApiBaseUrl = () => {
+  const envBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (envBase) return envBase;
+
+  if (typeof window !== "undefined") {
+    // In deployments (e.g. Vultr + reverse proxy), default to same-origin API path.
+    return `${window.location.origin}/api`;
+  }
+
+  // Server-side fallback for local development.
+  return "http://localhost:5001/api";
+};
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 export const ACCESS_TOKEN_KEY = "hackflow_ai_token";
 export const CURRENT_USER_KEY = "hackflow_ai_user";
@@ -43,4 +56,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-

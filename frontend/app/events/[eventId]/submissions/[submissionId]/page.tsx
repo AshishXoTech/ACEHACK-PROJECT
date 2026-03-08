@@ -6,7 +6,15 @@ import axios from "axios";
 import AIAnalysisChart from "@/components/ai/AIAnalysisChart";
 import { PageSkeleton } from "@/components/ui/LoadingSkeleton";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001/api";
+const resolveApiBaseUrl = () => {
+  const envBase =
+    process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL;
+  if (envBase) return envBase;
+  if (typeof window !== "undefined") return `${window.location.origin}/api`;
+  return "http://localhost:5001/api";
+};
+
+const API = resolveApiBaseUrl();
 
 interface AIAnalysis {
   overallScore: number;
