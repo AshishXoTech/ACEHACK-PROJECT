@@ -16,7 +16,7 @@ interface Registration {
   teamId: string;
   teamName: string;
   members?: string[];
-  submissionId?: string;
+  submissionId?: string | null;
 }
 
 interface ParticipantData {
