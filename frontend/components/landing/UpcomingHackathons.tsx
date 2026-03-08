@@ -33,6 +33,8 @@ const upcomingHackathons = [
 export default function UpcomingHackathons() {
   return (
     <Section
+      id="upcoming-hackathons"
+      className="py-12"
       title="Upcoming Hackathons"
       description="Register early and prepare for the next wave of innovation."
     >
